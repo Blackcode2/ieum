@@ -1,0 +1,392 @@
+/*
+ * Main screen: Figma frame "Desktop - 1 - main" (node 7:2), 1920 x 2915.
+ * Every length is a design pixel: ScaledCanvas scales the whole frame to the window width.
+ * The page is a plain vertical stack (hero 1131 + gap 213 + best classes 1111 + footer 460 = 2915);
+ * only things the design genuinely places (photo, gradient, logo, chevron, dots...) are absolute.
+ */
+
+/*
+ * Logo typeface: 신라문화체 M (Shilla Culture M), (c) 경주시 (Gyeongju City).
+ * Licence: free for anyone to use, web fonts included; the font file itself may not be modified,
+ * sold or redistributed, so it is served exactly as published (not subset, not re-encoded).
+ * File: the web font published by noonnu (projectnoonnu/noonfonts_2206-02), noonnu.cc/font_page/952
+ */
+@font-face {
+  font-family: 'Shilla Culture M';
+  src: url('/assets/fonts/Shilla_CultureM-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+
+/* ---------- Header: logo + navigation, laid over the hero ---------- */
+
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 1920px;
+}
+
+.logo {
+  position: absolute;
+  left: 93px;
+  top: 40px;
+  font-family: 'Shilla Culture M', 'Nanum Myeongjo', AppleMyungjo, Batang, serif;
+  font-size: 41.412px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #ede3c4;
+  white-space: nowrap;
+}
+
+.nav {
+  position: absolute;
+  left: 1410px;
+  top: 40px;
+  width: 292px;
+  height: 22px;
+}
+
+/* The three items start at x = 0, 111 and 206 of the 292px box. */
+.navList {
+  display: grid;
+  grid-template-columns: 111px 95px max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-inter);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 22px; /* Figma: auto line height, 22px box */
+  letter-spacing: -0.45px;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+  position: relative;
+  height: 1131px;
+}
+
+.heroPhoto {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* The designer's crop of the photo inside the 1920 x 1131 frame. */
+.heroPhoto img {
+  position: absolute;
+  left: -0.02%;
+  top: -22.24%;
+  width: 129.61%;
+  height: 165.97%;
+  max-width: none;
+}
+
+/*
+ * Figma: linear gradient from #272727 at 100% to #000000 at 0%, ending 89.783% of the way down.
+ * Figma fades the colour and the alpha separately; CSS interpolates premultiplied colours, so the
+ * two-stop CSS gradient comes out up to 10/255 lighter half-way down than the Figma render.
+ * The intermediate stops sit on Figma's curve (colour and alpha both falling linearly).
+ */
+.heroShade {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 876px;
+  overflow: clip;
+  background: linear-gradient(
+    to bottom,
+    rgba(39, 39, 39, 1) 0%,
+    rgba(34, 34, 34, 0.875) 11.2229%,
+    rgba(29, 29, 29, 0.75) 22.4458%,
+    rgba(24, 24, 24, 0.625) 33.6686%,
+    rgba(20, 20, 20, 0.5) 44.8915%,
+    rgba(15, 15, 15, 0.375) 56.1144%,
+    rgba(10, 10, 10, 0.25) 67.3373%,
+    rgba(5, 5, 5, 0.125) 78.5601%,
+    rgba(0, 0, 0, 0) 89.783%
+  );
+}
+
+.heroCopy {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  width: 1920px;
+  padding: 207px 240px 100px;
+  font-family: var(--font-pretendard);
+  color: #fff;
+}
+
+.heroTitle {
+  width: 100%;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.heroLead {
+  width: 1440px;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.continueLink {
+  position: absolute;
+  left: 240px;
+  top: 584px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 190px;
+  height: 53px;
+  padding: 10px 23px 10px 29px;
+  border: 1px solid #fff;
+  border-radius: 45px;
+  font-family: var(--font-pretendard);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #fff;
+  white-space: pre;
+}
+
+.continueLink:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 5px;
+}
+
+.continueLabel {
+  flex-shrink: 0;
+}
+
+.heroChevron {
+  position: absolute;
+  left: 1803px;
+  top: 542px;
+  width: 24px;
+  height: 52px;
+}
+
+/* The chevron's 5px round stroke bleeds 2.5px outside its 24 x 52 vector box. */
+.heroChevronBleed {
+  position: absolute;
+  inset: -4.81% -10.42%;
+}
+
+.heroDots {
+  position: absolute;
+  left: calc(50% + 0.5px);
+  top: 1056.02px;
+  width: 59px;
+  height: 10.965px;
+  transform: translateX(-50%);
+}
+
+/* The SVGs keep their own root width / height (29 x 57 and 59 x 10.9646). */
+.heroChevronBleed img,
+.heroDots img {
+  display: block;
+  max-width: none;
+}
+
+/* ---------- Best classes ---------- */
+
+.best {
+  height: 1111px; /* y 1344 -> 2455 */
+  margin: 213px 127px 0 153px;
+}
+
+.bestHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  height: 161px; /* the cards start at y 1505 */
+}
+
+/*
+ * Figma gives this line height as 122.77% of the font's own line height, not of the font size.
+ * Pretendard's is 2444 / 2048 em, so 1.2277 x 1.1934 = 1.4651 (the 1.465 used by its neighbours).
+ */
+.bestTitle {
+  font-family: var(--font-pretendard);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.4651;
+  color: #000;
+  white-space: nowrap;
+}
+
+.more {
+  margin-top: 16px; /* y 1360 */
+  font-family: var(--font-pretendard);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.465;
+  color: #797979;
+  text-decoration: underline solid;
+  /* Figma: thickness from the font, 1.88px at this size. Chrome truncates `from-font` to 1px. */
+  text-decoration-thickness: 2px;
+  text-underline-position: from-font;
+  white-space: nowrap;
+}
+
+.cardList {
+  display: grid;
+  grid-template-columns: repeat(3, 500px);
+  column-gap: 70px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+}
+
+.cardPhoto {
+  position: relative;
+  width: 500px;
+  height: 444px;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.cardPhoto img {
+  position: absolute;
+  max-width: none;
+}
+
+/* Card 1: the designer's own crop of the 16:9 photo. */
+.photoCropGat {
+  left: -23.92%;
+  top: -25.4%;
+  width: 275.1%;
+  height: 174.26%;
+}
+
+/* Cards 2 and 3: the photo fills the frame, centred. */
+.photoCover {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardTitle {
+  min-height: 94px; /* two lines, as in the design: the artisan line sits at y 2127 */
+  margin-top: 54px;
+  font-family: var(--font-inter);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.465;
+  color: #000;
+  white-space: nowrap;
+}
+
+.cardTitleLine {
+  display: block;
+}
+
+.cardArtisan {
+  margin-top: 30px;
+  font-family: var(--font-inter);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.465;
+  color: #555;
+  white-space: nowrap;
+}
+
+/* ---------- Footer ---------- */
+
+/*
+ * Line height: Figma's 116.505% is again relative to Pretendard's own line height (2444 / 2048 em):
+ * 1.16505 x 1.1934 x 20px = 27.8px. Figma snaps baselines to whole pixels, so its lines sit 28px
+ * apart; a whole 28px puts Chrome's baselines on the same rows (with 27.8px they land 1px higher,
+ * because Chrome floors the half-leading).
+ */
+.footer {
+  position: relative;
+  height: 460px;
+  background: #fff;
+  font-family: var(--font-pretendard);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 28px;
+  color: #000;
+}
+
+/* The hairline across the frame at y 2481.67. */
+.footer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26.67px;
+  width: 1920px;
+  height: 1.333px;
+  background: #000;
+}
+
+/*
+ * A row of labels 101px apart. Figma hugs each label to a whole pixel (67, 70, 139, 70, 70), which
+ * is what the tracks reproduce: with fractional text widths the last label would drift 3px left.
+ */
+.footerLinks {
+  position: absolute;
+  left: 91px;
+  top: 75px;
+  display: grid;
+  grid-template-columns: 67px 70px 139px 70px 70px;
+  column-gap: 101px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.instagram {
+  position: absolute;
+  left: 1762.67px;
+  top: 60px;
+  width: 64px;
+  height: 64px;
+  max-width: none;
+  object-fit: cover;
+  opacity: 0.4;
+}
+
+.company {
+  position: absolute;
+  left: 90.67px;
+  top: 232px;
+  width: 1304px;
+  height: 74.667px;
+  font-style: normal;
+  white-space: pre-wrap;
+}
+
+.copyright {
+  position: absolute;
+  left: 90.67px;
+  top: 346.67px;
+  width: 1256px;
+  height: 37.333px;
+  font-weight: 300;
+  text-align: justify;
+}

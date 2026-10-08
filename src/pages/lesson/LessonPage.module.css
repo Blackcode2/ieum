@@ -1,0 +1,261 @@
+/* Figma frames "Desktop - 2 - good" / "Desktop - 3 - bad" (1920 x 2632). Values are design pixels;
+   ScaledCanvas scales the whole frame to the window. */
+
+.page {
+  position: absolute;
+  inset: 0;
+  background: #171717;
+  color: #fff;
+  font-family: var(--font-inter);
+  line-height: normal;
+}
+
+.header {
+  position: absolute;
+  left: 56px;
+  top: 73px;
+  display: flex;
+  align-items: flex-end;
+  gap: 27px;
+  color: #e8e8e8;
+  white-space: nowrap;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.course {
+  font-size: 20px;
+  font-weight: 400;
+}
+
+/* ---- the two video panels ---- */
+
+.panel {
+  position: absolute;
+  height: 1027px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #d9d9d9;
+}
+
+.cameraPanel {
+  composes: panel;
+  left: 33px;
+  top: 152px;
+  width: 1146px;
+}
+
+.artisanPanel {
+  composes: panel;
+  left: 1191px;
+  top: 150px;
+  width: 710px;
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The learner sees themselves as in a mirror; the tracker still gets the un-mirrored frame. */
+.cameraVideo {
+  composes: video;
+  transform: scaleX(-1);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.label {
+  position: absolute;
+  top: 188px;
+  width: 134px;
+  height: 63px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: rgba(23, 23, 23, 0.7);
+  font-size: 24px;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cameraLabel {
+  composes: label;
+  left: 76px;
+}
+
+.artisanLabel {
+  composes: label;
+  left: 1233px;
+}
+
+/* ---- feedback pill ---- */
+
+.pill {
+  position: absolute;
+  /* Centred where the design's 307px pill sits (left 452), so longer messages grow evenly. */
+  left: 605.5px;
+  top: 989px;
+  transform: translateX(-50%);
+  min-width: 307px;
+  height: 52px;
+  padding: 0 47px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28px;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.pill[data-tone='good'] {
+  background: rgba(28, 79, 20, 0.4);
+}
+
+.pill[data-tone='bad'] {
+  background: rgba(120, 25, 25, 0.6);
+}
+
+.pill[data-tone='neutral'] {
+  background: rgba(23, 23, 23, 0.7);
+}
+
+/* ---- player controls ---- */
+
+.controls {
+  position: absolute;
+  left: 102px;
+  top: 1080px;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.playButton {
+  width: 65px;
+  height: 65px;
+  border-radius: 32.5px;
+  display: block;
+}
+
+.playButton img {
+  display: block;
+}
+
+.volumeButton {
+  width: 65px;
+  height: 65px;
+  padding: 19px 17px 19px 16px;
+  border-radius: 32.5px;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: flex-start;
+}
+
+.volumeButton img {
+  display: block;
+  transition: opacity 0.15s ease;
+}
+
+.volumeButton[aria-pressed='true'] img {
+  opacity: 0.35;
+}
+
+.playButton:focus-visible,
+.volumeButton:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.playButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.time {
+  width: 223px;
+  height: 65px;
+  padding: 18px 36px 17px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 52px;
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 25px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---- curriculum ---- */
+
+.curriculumTitle {
+  position: absolute;
+  left: 129px;
+  top: 1337px;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 48px;
+  white-space: nowrap;
+}
+
+.curriculum {
+  position: absolute;
+  left: 128px;
+  top: 1464px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 39px;
+}
+
+.lesson {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+}
+
+.lesson img {
+  display: block;
+  flex: none;
+}
+
+.lessonText {
+  width: 674px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-weight: 400;
+}
+
+.lessonTitle {
+  font-size: 28px;
+  line-height: 34px;
+  color: #dfdfdf;
+}
+
+.lessonDuration {
+  font-size: 22px;
+  line-height: 27px;
+  color: #7e7e7e;
+}
