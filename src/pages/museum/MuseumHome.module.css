@@ -141,23 +141,22 @@
   display: flex;
   align-items: center;
   gap: 28px;
-  padding: 20px 44px 20px 20px;
+  padding: 18px 44px 18px 18px;
   border: 1px solid rgba(244, 239, 230, 0.14);
-  border-radius: 84px;
+  border-radius: 87px;
   background: rgba(22, 21, 19, 0.74);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
 
-/* The master's hands on the clay, from the clip the visitor is about to follow. */
-.artisanClip {
+/* The master's portrait. */
+.artisanPhoto {
   flex: none;
   display: block;
-  width: 124px;
-  height: 124px;
+  width: 136px;
+  height: 136px;
   border-radius: 50%;
   object-fit: cover;
-  object-position: 50% 45%;
   background: #0c0b0a;
 }
 

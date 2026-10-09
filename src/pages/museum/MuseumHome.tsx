@@ -39,7 +39,7 @@ export function MuseumHome() {
           <p className={styles.disclaimer}>{EXPERIENCE.disclaimer}</p>
         </section>
         <section className={styles.artisan} aria-labelledby="home-artisan" data-testid="home-artisan">
-          <video className={styles.artisanClip} src={publicUrl(ARTISAN.clip)} autoPlay loop muted playsInline aria-hidden="true" />
+          <img className={styles.artisanPhoto} src={publicUrl(ARTISAN.photo.src)} alt={ARTISAN.photo.alt} draggable={false} />
           <div>
             <p className={styles.artisanEyebrow}>{ARTISAN.homeEyebrow}</p>
             <h2 id="home-artisan" className={styles.artisanName}>

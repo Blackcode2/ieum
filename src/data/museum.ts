@@ -71,8 +71,9 @@ export const EXPERIENCE = {
 
 // Everything about the master and the class is a stand-in. The name, the class title and the
 // lesson list come from the lesson design; the field and the introductions were written for these
-// screens. None of it is confirmed by a real master, and the clip is not known to show this
-// person, so all of it has to be replaced or approved before the screens are shown as fact.
+// screens. None of it is confirmed by a real master, and neither the clip nor the photo is known
+// to show this person, so all of it has to be replaced or approved before the screens are shown
+// as fact.
 export const ARTISAN = {
   eyebrow: '화면 속 손의 주인공',
   name: '김소명 장인',
@@ -80,6 +81,11 @@ export const ARTISAN = {
   /** The first screen says in one line whose hands the visitor is about to follow. */
   homeEyebrow: '함께하는 장인',
   brief: '물레 앞에서 흙을 다뤄 온 도예 장인이에요.',
+  /** Supplied by the team; who took it and whether it may be shown is not recorded (see CREDITS.md). */
+  photo: {
+    src: 'assets/museum/artisan.jpg',
+    alt: '작업실에서 둥근 항아리를 들고 웃는 장인',
+  },
   intro:
     '물레 앞에서 흙을 다뤄 온 도예 장인이에요. 영상만으로는 전해지지 않던 손의 높이와 속도를, 이음에서는 한 동작씩 겹쳐 보며 배울 수 있어요.',
   clip: LESSON.videoUrl,

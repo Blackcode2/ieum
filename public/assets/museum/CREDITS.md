@@ -31,6 +31,9 @@ Stand-ins with open licences, used until the museum supplies its own photographs
 
 ## Not cleared
 
+- artisan.jpg, the portrait beside the master's name on the first screen: a square cut from a
+  photograph the team supplied on 9 October 2026 (a potter holding a round jar in a workshop),
+  resized to 480 x 480. Who took it, who it shows and whether it may be shown are not recorded.
 - The clip the visitor follows (public/lesson/lesson.mp4) and the photographs on the earlier class
   page (public/assets/main) have no recorded source or permission. They are in the demo as
   stand-ins and must be replaced or cleared before the screens are used for real.
