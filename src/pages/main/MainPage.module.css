@@ -5,19 +5,7 @@
  * only things the design genuinely places (photo, gradient, logo, chevron, dots...) are absolute.
  */
 
-/*
- * Logo typeface: 신라문화체 M (Shilla Culture M), (c) 경주시 (Gyeongju City).
- * Licence: free for anyone to use, web fonts included; the font file itself may not be modified,
- * sold or redistributed, so it is served exactly as published (not subset, not re-encoded).
- * File: the web font published by noonnu (projectnoonnu/noonfonts_2206-02), noonnu.cc/font_page/952
- */
-@font-face {
-  font-family: 'Shilla Culture M';
-  src: url('/assets/fonts/Shilla_CultureM-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: block;
-}
+/* The logo is set in 신라문화체 M; the face is declared in src/styles/global.css. */
 
 /* ---------- Header: logo + navigation, laid over the hero ---------- */
 

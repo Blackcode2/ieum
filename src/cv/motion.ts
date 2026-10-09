@@ -1,7 +1,7 @@
 // Pure motion maths for the lesson: what is measured from two tracked hands, how a take is compared
 // with the reference motion, which live feedback follows from it, and the final 동작 일치도.
 // No DOM and no imports besides types, so tools/coach_check.ts can run it in Node on recorded tracks.
-import type { SessionResult } from './types';
+import type { MotionResult } from './types';
 
 export type Point = readonly [number, number];
 
@@ -55,6 +55,9 @@ export function measureHands(frame: HandsFrame, aspect: number): HandsMeasure | 
   const right = centreAndSpread(frame.right, aspect);
   // Two centres closer than one hand size: the tracker reported one hand twice.
   if (Math.hypot(left.centre[0] - right.centre[0], left.centre[1] - right.centre[1]) < (left.spread + right.spread) / 2) return null;
+  // One "hand" under half the other's size: the tracker lost it and is following something else.
+  // (Seen at 0.26-0.28 when that happens; two real hands never went below 0.89 on the recordings.)
+  if (Math.min(left.spread, right.spread) < 0.5 * Math.max(left.spread, right.spread)) return null;
   return {
     left: left.centre,
     right: right.centre,
@@ -63,6 +66,31 @@ export function measureHands(frame: HandsFrame, aspect: number): HandsMeasure | 
     tilt: left.centre[1] - right.centre[1],
     size: (left.spread + right.spread) / 2,
   };
+}
+
+/** True if neither hand's centre moved by more than `tolerance` hand sizes over these measurements. */
+export function isSteady(pose: ReadonlyArray<HandsMeasure>, tolerance: number): boolean {
+  if (pose.length < 2) return false;
+  const size = pose.reduce((sum, m) => sum + m.size, 0) / pose.length;
+  const moved = (pick: (m: HandsMeasure) => number): number => {
+    let low = Infinity;
+    let high = -Infinity;
+    for (const m of pose) {
+      const value = pick(m);
+      if (value < low) low = value;
+      if (value > high) high = value;
+    }
+    return high - low;
+  };
+  return (
+    Math.max(
+      moved((m) => m.left[0]),
+      moved((m) => m.left[1]),
+      moved((m) => m.right[0]),
+      moved((m) => m.right[1]),
+    ) <=
+    tolerance * size
+  );
 }
 
 // ---------------------------------------------------------------------------------------------------
@@ -106,7 +134,7 @@ function smooth(values: ReadonlyArray<number>, radius: number): number[] {
 }
 
 /** The first 0.3 s of the reference stand in for its start pose. */
-const START_FRAMES = 9;
+export const START_FRAMES = 9;
 
 export function buildReference(file: ReferenceFile): ReferenceMotion {
   const aspect = file.view.aspect;
@@ -305,7 +333,7 @@ export class TakeScorer {
     return this.decide(tMs, raw);
   }
 
-  finish(): SessionResult {
+  finish(): MotionResult {
     const coverage = this.frames ? this.tracked / this.frames : 0;
     if (coverage < this.config.minCoverage || this.samples.length < 10) {
       return { score: null, reason: 'not-tracked', coverage };

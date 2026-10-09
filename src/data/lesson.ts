@@ -1,4 +1,5 @@
-// Copy for the lesson screen, as written in the Figma frames "Desktop - 2 - good" / "Desktop - 3 - bad".
+// The class as written in the Figma frames "Desktop - 2 - good" / "Desktop - 3 - bad", and the clip
+// with its reference motion that the kiosk experience plays.
 
 export interface CurriculumItem {
   title: string;
@@ -6,7 +7,6 @@ export interface CurriculumItem {
 }
 
 export const LESSON = {
-  title: '4강. 바닥이 뚫리지 않게 엄지로 구멍 내기',
   course: '김소명에게 직접 배우는 도자의 기초',
   videoUrl: 'lesson/lesson.mp4',
   referenceUrl: 'lesson/reference.json',

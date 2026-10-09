@@ -4,6 +4,20 @@
   --font-inter: 'Inter Variable', Inter, 'Noto Sans KR Variable', 'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif;
 }
 
+/*
+ * 신라문화체 M (Shilla Culture M), (c) 경주시 (Gyeongju City): the ieum logo and the kiosk's titles.
+ * Licence: free for anyone to use, web fonts included; the font file itself may not be modified,
+ * sold or redistributed, so it is served exactly as published (not subset, not re-encoded).
+ * File: the web font published by noonnu (projectnoonnu/noonfonts_2206-02), noonnu.cc/font_page/952
+ */
+@font-face {
+  font-family: 'Shilla Culture M';
+  src: url('/assets/fonts/Shilla_CultureM-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+
 *,
 *::before,
 *::after {

@@ -1,0 +1,32 @@
+/* Sized by the display, not by a scaled design frame: the page under it scrolls. */
+.home {
+  position: fixed;
+  right: 2.2vw;
+  bottom: 3.2vh;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  height: clamp(48px, 7.5vh, 88px);
+  padding: 0 clamp(20px, 2.2vw, 40px);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(23, 23, 23, 0.82);
+  color: #fff;
+  font-size: clamp(16px, 1.55vw, 30px);
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.home:active {
+  background: rgba(60, 60, 60, 0.9);
+}
+
+.home:focus-visible {
+  outline: 4px solid #fff;
+  outline-offset: 4px;
+}

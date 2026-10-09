@@ -1,5 +1,7 @@
+import { Clay } from './clay';
 import { CoachEmitter } from './emitter';
 import { countdownFeedback, feedback, resultFeedback } from './messages';
+import type { HandsMeasure } from './motion';
 import type {
   CoachEventMap,
   CoachInit,
@@ -44,6 +46,7 @@ export class MockCoach implements LessonCoach {
   private time: LessonTime = { currentMs: 0, durationMs: DURATION_MS };
   private timers: number[] = [];
   private raf = 0;
+  private readonly clay = new Clay();
 
   constructor(private readonly scenario: MockScenario) {}
 
@@ -56,6 +59,10 @@ export class MockCoach implements LessonCoach {
 
   start(): void {
     this.clearTimers();
+    // Back to the start pose and a fresh lump, also after a finished take.
+    this.time = { currentMs: 0, durationMs: DURATION_MS };
+    this.emitter.emit('time', this.time);
+    this.emitHands(0);
     this.setState('countdown');
     for (let i = 0; i < COUNTDOWN_S; i++) {
       this.timers.push(window.setTimeout(() => this.setFeedback(countdownFeedback(COUNTDOWN_S - i)), i * 1000));
@@ -120,15 +127,30 @@ export class MockCoach implements LessonCoach {
 
   private finish(): void {
     const score = this.scenario === 'good' ? 92 : 48;
-    this.emitter.emit('result', { score, reason: 'ok', coverage: 1 });
+    const shapeScore = this.scenario === 'good' ? 88 : 61;
+    this.emitter.emit('result', { score, shapeScore, reason: 'ok', coverage: 1 });
     this.setState('finished');
-    this.setFeedback(resultFeedback(score, 70));
+    this.setFeedback(resultFeedback(score, shapeScore, 75));
   }
 
   private emitHands(progress: number): void {
     const speed = this.scenario === 'good' ? 1 : 1.6;
     const y = 0.72 - 0.42 * Math.min(1, progress * speed);
     this.emitter.emit('hands', [mockHand(0.34, y, 0.2, false), mockHand(0.66, y, 0.2, true)]);
+
+    // The same clay as the real coach, gripped by where the scripted hands are.
+    const aspect = 1146 / 1027;
+    const grip: HandsMeasure = {
+      left: [0.34 * aspect, y],
+      right: [0.66 * aspect, y],
+      midY: y,
+      gap: 0.32 * aspect,
+      tilt: 0,
+      size: 0.085,
+    };
+    if (progress === 0) this.clay.fit([grip]);
+    else this.clay.press(grip, performance.now());
+    this.emitter.emit('clay', this.clay.shape());
   }
 
   private setState(state: CoachState): void {

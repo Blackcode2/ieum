@@ -1,5 +1,6 @@
-/* Figma frames "Desktop - 2 - good" / "Desktop - 3 - bad" (1920 x 2632). Values are design pixels;
-   ScaledCanvas scales the whole frame to the window. */
+/* The experience screen: the top 1212 pixels of the Figma frames "Desktop - 2 - good" / "Desktop - 3 -
+   bad" (1920 wide), with the kiosk's own buttons added. Values are design pixels; KioskStage scales
+   the stage to the display. */
 
 .page {
   position: absolute;
@@ -27,8 +28,40 @@
 }
 
 .course {
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 400;
+}
+
+/* The camera is on only on this screen, and says so while it is. */
+.cameraNote {
+  position: absolute;
+  right: 268px;
+  top: 40px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.78);
+  white-space: nowrap;
+}
+
+.cameraDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fa3926;
+}
+
+/* Back to the kiosk's first screen. Smaller than the buttons that move the visit forward. */
+.page .home {
+  position: absolute;
+  right: 56px;
+  top: 40px;
+  height: 72px;
+  padding: 0 32px;
+  border-radius: 36px;
+  font-size: 26px;
 }
 
 /* ---- the two video panels ---- */
@@ -107,30 +140,33 @@
 
 .pill {
   position: absolute;
-  /* Centred where the design's 307px pill sits (left 452), so longer messages grow evenly. */
+  /* Centred where the design's pill sits, so longer messages grow evenly. The design's text is 20px
+     in a 52px pill, made for a web page; at a kiosk it is read from further away. */
   left: 605.5px;
-  top: 989px;
+  top: 975px;
   transform: translateX(-50%);
-  min-width: 307px;
-  height: 52px;
-  padding: 0 47px;
+  min-width: 380px;
+  height: 66px;
+  padding: 0 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 28px;
-  font-size: 20px;
+  border-radius: 33px;
+  font-size: 28px;
   font-weight: 500;
   letter-spacing: -0.5px;
   white-space: nowrap;
   transition: background-color 0.2s ease;
 }
 
+/* The design has 0.4 and 0.6 here, over the camera picture. The pill now lies on the pale clay, and
+   over a light shirt the white text fell below 4.5 : 1, so both are more solid. */
 .pill[data-tone='good'] {
-  background: rgba(28, 79, 20, 0.4);
+  background: rgba(28, 79, 20, 0.8);
 }
 
 .pill[data-tone='bad'] {
-  background: rgba(120, 25, 25, 0.6);
+  background: rgba(120, 25, 25, 0.8);
 }
 
 .pill[data-tone='neutral'] {
@@ -205,57 +241,33 @@
   white-space: nowrap;
 }
 
-/* ---- curriculum ---- */
+/* ---- the next step, over the foot of the artisan's panel ---- */
 
-.curriculumTitle {
+.nextShade {
   position: absolute;
-  left: 129px;
-  top: 1337px;
-  font-size: 40px;
-  font-weight: 600;
-  line-height: 48px;
-  white-space: nowrap;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 440px;
+  background: linear-gradient(180deg, rgba(23, 23, 23, 0) 0%, rgba(23, 23, 23, 0.84) 55%, rgba(23, 23, 23, 0.94) 100%);
+  pointer-events: none;
 }
 
-.curriculum {
+.next {
   position: absolute;
-  left: 128px;
-  top: 1464px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 39px;
-}
-
-.lesson {
-  display: flex;
-  align-items: flex-start;
-  gap: 22px;
-}
-
-.lesson img {
-  display: block;
-  flex: none;
-}
-
-.lessonText {
-  width: 674px;
-  display: flex;
-  flex-direction: column;
+  left: 1239px;
+  top: 925px;
+  width: 614px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
-  font-weight: 400;
 }
 
-.lessonTitle {
-  font-size: 28px;
-  line-height: 34px;
-  color: #dfdfdf;
+.next button {
+  width: 100%;
+  padding: 0 24px;
 }
 
-.lessonDuration {
-  font-size: 22px;
-  line-height: 27px;
-  color: #7e7e7e;
+.next .wide {
+  grid-column: 1 / -1;
 }

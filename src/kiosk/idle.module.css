@@ -1,0 +1,40 @@
+/* Sized by the display, not by a scaled stage: it lies over whichever screen is open, in the
+   middle, where it cannot be missed and covers none of the buttons along the edges. */
+.notice {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 20;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 1.4vw, 28px);
+  padding: clamp(8px, 1.1vh, 14px) clamp(10px, 1vw, 18px) clamp(8px, 1.1vh, 14px) clamp(20px, 2.2vw, 44px);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.94);
+  color: #fff;
+  font-family: var(--font-pretendard);
+  font-size: clamp(16px, 1.6vw, 30px);
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  white-space: nowrap;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.stay {
+  height: clamp(44px, 6.5vh, 76px);
+  padding: 0 clamp(18px, 2vw, 40px);
+  border-radius: 999px;
+  background: #ede3c4;
+  color: #1c1a17;
+  font-weight: 700;
+}
+
+.stay:focus-visible {
+  outline: 4px solid #fff;
+  outline-offset: 3px;
+}

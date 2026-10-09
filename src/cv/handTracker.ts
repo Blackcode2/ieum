@@ -54,6 +54,11 @@ export class HandTracker {
     return result.landmarks.map((hand) => hand.map((p): Point => [p.x, p.y]));
   }
 
+  /** Forgets the hands it is following, so the next frame is searched from scratch (after a recording jumps). */
+  reset(): void {
+    if (this.landmarker && !this.rebuilding) this.detect(blankFrame());
+  }
+
   close(): void {
     this.closed = true;
     this.landmarker?.close();

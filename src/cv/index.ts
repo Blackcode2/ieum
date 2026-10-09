@@ -4,6 +4,7 @@ import { RealCoach } from './lessonCoach';
 import { MockCoach } from './mockCoach';
 import type { LessonCoach } from './types';
 
+export type { ClayShape } from './clay';
 export type { CoachState, Feedback, FeedbackTone, LessonCoach, LessonTime, OverlayHand, SessionResult } from './types';
 export { HAND_CONNECTIONS } from './types';
 

@@ -1,3 +1,5 @@
+import type { ClayShape } from './clay';
+
 // Contract between the lesson screen and the video-processing side.
 // The screen owns the two <video> elements and the overlay canvas; the coach owns the camera,
 // the hand tracker, lesson playback and the feedback shown in the pill.
@@ -14,6 +16,7 @@ export type FeedbackCode =
   | 'show-hands'
   | 'press-play'
   | 'countdown'
+  | 'hold-still'
   | 'follow'
   | 'steady'
   | 'too-fast'
@@ -55,7 +58,7 @@ export interface LessonTime {
 
 export type ResultReason = 'ok' | 'no-movement' | 'not-tracked';
 
-export interface SessionResult {
+export interface MotionResult {
   /** 동작 일치도, 0-100. null when the take could not be scored. */
   score: number | null;
   reason: ResultReason;
@@ -63,10 +66,17 @@ export interface SessionResult {
   coverage: number;
 }
 
+export interface SessionResult extends MotionResult {
+  /** 모양 일치도, 0-100: how close the finished pot is to the one the reference motion makes. */
+  shapeScore: number | null;
+}
+
 export interface CoachEventMap {
   state: CoachState;
   feedback: Feedback;
   hands: ReadonlyArray<OverlayHand>;
+  /** The virtual clay after each camera frame, or null while there is none on the wheel. */
+  clay: ClayShape | null;
   time: LessonTime;
   result: SessionResult;
 }

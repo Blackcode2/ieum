@@ -1,0 +1,78 @@
+/* Buttons and small parts shared by the kiosk screens. Lengths are design pixels of a 1920-wide
+   stage: on a 24-inch full-HD touch screen one pixel is about 0.28 mm, so the 104px button is about
+   29 mm tall and the smallest text (22px) about 6 mm. */
+
+.primary,
+.ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  white-space: nowrap;
+  letter-spacing: -0.5px;
+  transition:
+    transform 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.primary {
+  height: 104px;
+  padding: 0 52px;
+  border-radius: 52px;
+  background: #ede3c4;
+  color: #1c1a17;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.primary:active {
+  transform: scale(0.98);
+  background: #dfd3ae;
+}
+
+.ghost {
+  height: 88px;
+  padding: 0 40px;
+  border: 2px solid rgba(244, 239, 230, 0.5);
+  border-radius: 44px;
+  background: rgba(23, 23, 23, 0.4);
+  color: #f4efe6;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.ghost:active {
+  transform: scale(0.98);
+  background: rgba(244, 239, 230, 0.16);
+}
+
+.primary:focus-visible,
+.ghost:focus-visible {
+  outline: 4px solid #fff;
+  outline-offset: 4px;
+}
+
+.primary:disabled,
+.ghost:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 20px;
+  border: 1.5px solid rgba(237, 227, 196, 0.65);
+  border-radius: 22px;
+  color: #ede3c4;
+  font-size: 22px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Titles use the typeface of the ieum logo, which Gyeongju City made from Silla motifs. */
+.display {
+  font-family: 'Shilla Culture M', 'Nanum Myeongjo', AppleMyungjo, Batang, serif;
+  font-weight: 500;
+}

@@ -5,35 +5,28 @@ const DESIGN_WIDTH = 1920;
 interface ScaledCanvasProps {
   /** Height of the Figma frame in design pixels. */
   height: number;
-  /**
-   * Design pixels from the top of the frame that must be visible without scrolling. When the window
-   * is too short for them at full width, the frame is scaled down further and centred.
-   */
-  fitHeight?: number;
   background?: string;
   children: ReactNode;
 }
 
-function measure(fitHeight?: number): { scale: number; offset: number } {
-  const width = document.documentElement.clientWidth;
-  const byWidth = width / DESIGN_WIDTH;
-  const scale = fitHeight ? Math.min(byWidth, window.innerHeight / fitHeight) : byWidth;
-  return { scale, offset: (width - DESIGN_WIDTH * scale) / 2 };
+function measure(): number {
+  return document.documentElement.clientWidth / DESIGN_WIDTH;
 }
 
 /**
- * The screens are designed as fixed 1920px desktop frames. This lays the children out in design
- * pixels and scales the whole frame to the window, so the layout matches Figma on any laptop.
+ * A page designed as a fixed 1920px desktop frame that scrolls. This lays the children out in design
+ * pixels and scales the whole frame to the window width, so the layout matches Figma on any display.
+ * (Kiosk screens, which do not scroll, use KioskStage instead.)
  */
-export function ScaledCanvas({ height, fitHeight, background, children }: ScaledCanvasProps) {
-  const [{ scale, offset }, setLayout] = useState(() => measure(fitHeight));
+export function ScaledCanvas({ height, background, children }: ScaledCanvasProps) {
+  const [scale, setScale] = useState(measure);
 
   useEffect(() => {
-    const onResize = () => setLayout(measure(fitHeight));
+    const onResize = () => setScale(measure());
     onResize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [fitHeight]);
+  }, []);
 
   // The page behind the frame takes the frame's colour, so nothing white shows around a dark screen.
   useEffect(() => {
@@ -52,7 +45,7 @@ export function ScaledCanvas({ height, fitHeight, background, children }: Scaled
           position: 'relative',
           width: DESIGN_WIDTH,
           height,
-          transform: `translateX(${offset}px) scale(${scale})`,
+          transform: `scale(${scale})`,
           transformOrigin: '0 0',
         }}
       >

@@ -1,11 +1,9 @@
 import { ScaledCanvas } from '../../components/ScaledCanvas';
+import { ROUTES } from '../../routes';
 import styles from './MainPage.module.css';
 
 /** Figma frame "Desktop - 1 - main" (node 7:2): 1920 x 2915 design pixels. */
 const FRAME_HEIGHT = 2915;
-
-/** Hash route of the lesson screen (ROUTES.lesson in src/App.tsx). */
-const LESSON_HREF = '#/lesson';
 
 /** Files in public/assets/main, downloaded from the Figma frame. */
 const asset = (file: string) => `${import.meta.env.BASE_URL}assets/main/${file}`;
@@ -92,7 +90,7 @@ export function MainPage() {
                 전통 공예 클래스를 제공하는 서비스입니다.
               </p>
             </div>
-            <a className={styles.continueLink} href={LESSON_HREF}>
+            <a className={styles.continueLink} href={ROUTES.lesson}>
               <span className={styles.continueLabel}>
                 이어서 보기
                 <span aria-hidden="true">{'   →'}</span>
