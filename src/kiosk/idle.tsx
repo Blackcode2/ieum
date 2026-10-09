@@ -62,6 +62,8 @@ export function FreshStart({ seconds, enabled }: { seconds: number; enabled: boo
     const options = { capture: true, passive: true } as const;
     ACTIVITY_EVENTS.forEach((type) => window.addEventListener(type, pokeIdle, options));
     const timer = window.setInterval(() => {
+      // A reload would drop the full screen someone switched on with the F key (see App.tsx).
+      if (document.fullscreenElement) return;
       if (performance.now() - lastActivity >= seconds * 1000) window.location.reload();
     }, 5000);
     return () => {
