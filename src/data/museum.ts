@@ -17,6 +17,9 @@ export interface Photo {
 
 // The two photos are stand-ins with open licences until the museum supplies its own; where they
 // come from and what was changed is in public/assets/museum/CREDITS.md.
+//
+// The museum has not seen or agreed to these screens, and since October 2026 they no longer say so
+// (the team's decision): its consent is needed before visitors can reach them under its name.
 export const MUSEUM = {
   name: '국립경주박물관',
   englishName: 'Gyeongju National Museum',
@@ -26,11 +29,6 @@ export const MUSEUM = {
     credit:
       '박물관 사진: Christophe95 / Wikimedia Commons, CC BY-SA 4.0 (creativecommons.org/licenses/by-sa/4.0), 잘라 내고 일부 가림',
   } satisfies Photo,
-  /**
-   * The museum has not seen or agreed to these screens. Until it has, every copy that people can
-   * reach says so; take this out only with the museum's consent.
-   */
-  demoNotice: '시연용 화면이에요. 국립경주박물관의 공식 안내가 아니에요.',
   /** Shown with the photo credits. */
   fontCredit: '글꼴: 신라문화체(경주시)',
 };
@@ -71,14 +69,17 @@ export const EXPERIENCE = {
   photoPlace: '장인 따라 빚기 체험',
 };
 
-// Everything about the master and the class is a stand-in for the demo. The name, the class title
-// and the lesson list come from the lesson design; the field and the introduction were written for
-// this screen. None of it is confirmed by a real master, and the clip is not known to show this
+// Everything about the master and the class is a stand-in. The name, the class title and the
+// lesson list come from the lesson design; the field and the introductions were written for these
+// screens. None of it is confirmed by a real master, and the clip is not known to show this
 // person, so all of it has to be replaced or approved before the screens are shown as fact.
 export const ARTISAN = {
   eyebrow: '화면 속 손의 주인공',
   name: '김소명 장인',
   field: '도예 · 물레 성형',
+  /** The first screen says in one line whose hands the visitor is about to follow. */
+  homeEyebrow: '함께하는 장인',
+  brief: '물레 앞에서 흙을 다뤄 온 도예 장인이에요.',
   intro:
     '물레 앞에서 흙을 다뤄 온 도예 장인이에요. 영상만으로는 전해지지 않던 손의 높이와 속도를, 이음에서는 한 동작씩 겹쳐 보며 배울 수 있어요.',
   clip: LESSON.videoUrl,

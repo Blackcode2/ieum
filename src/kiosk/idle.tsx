@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ROUTES, go } from '../routes';
 import styles from './idle.module.css';
 
@@ -8,17 +8,21 @@ const WARNING_S = 20;
 
 let lastActivity = performance.now();
 
-/** Marks activity that is not a touch, such as hands seen by the camera. */
-export function pokeIdle(): void {
+function pokeIdle(): void {
   lastActivity = performance.now();
 }
 
+const goHome = () => go(ROUTES.home);
+
 /**
- * A kiosk must not stay on the last visitor's screen: after `seconds` without a touch the app
- * returns to the first screen. Returns the seconds left, for the notice.
+ * A kiosk must not stay on the last visitor's screen. Counts down from `seconds` while `enabled`,
+ * starting again at every touch, and calls `onDone` at zero. Returns the seconds left, for
+ * whoever shows them.
  */
-function useIdleReturn(seconds: number, enabled: boolean): number {
+export function useCountdown(seconds: number, enabled: boolean, onDone: () => void): number {
   const [secondsLeft, setSecondsLeft] = useState(seconds);
+  const done = useRef(onDone);
+  done.current = onDone;
 
   useEffect(() => {
     pokeIdle();
@@ -29,7 +33,7 @@ function useIdleReturn(seconds: number, enabled: boolean): number {
     const timer = window.setInterval(() => {
       const left = Math.ceil(seconds - (performance.now() - lastActivity) / 1000);
       setSecondsLeft(Math.max(0, left));
-      if (left <= 0) go(ROUTES.home);
+      if (left <= 0) done.current();
     }, 500);
     return () => {
       ACTIVITY_EVENTS.forEach((type) => window.removeEventListener(type, pokeIdle, options));
@@ -63,11 +67,12 @@ export function FreshStart({ seconds, enabled }: { seconds: number; enabled: boo
 }
 
 /**
- * That rule with its notice: shows nothing until the last twenty seconds, then says so and offers
- * to stay. A component of its own, so that the screen under it does not re-render every second.
+ * After `seconds` without a touch the app returns to the first screen. Shows nothing until the
+ * last twenty seconds, then says so and offers to stay. A component of its own, so that the screen
+ * under it does not re-render every second.
  */
 export function IdleReturn({ seconds, enabled = true }: { seconds: number; enabled?: boolean }) {
-  const secondsLeft = useIdleReturn(seconds, enabled);
+  const secondsLeft = useCountdown(seconds, enabled, goHome);
   if (!enabled || secondsLeft > WARNING_S) return null;
   return (
     <div className={styles.notice} role="alert" data-testid="idle-warning">

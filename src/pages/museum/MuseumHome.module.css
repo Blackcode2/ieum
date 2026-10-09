@@ -35,18 +35,20 @@
 }
 
 /* The names sit on the stage and the photo on the display, so on a display of another shape the
-   photo's bright roof can come to lie behind them. This shade travels with the names. */
+   photo's bright roof can come to lie behind them. This shade travels with the names. It reaches
+   past the stage's top and left edge and fades out there, so that a display taller or wider than
+   the stage shows no edge of it. */
 .museum::before {
   content: '';
   position: absolute;
-  left: -88px;
-  top: -68px;
+  left: -488px;
+  top: -268px;
   z-index: -1;
-  width: 1100px;
-  height: 320px;
-  background: linear-gradient(180deg, rgba(14, 13, 11, 0.8) 0%, rgba(14, 13, 11, 0.66) 50%, rgba(14, 13, 11, 0) 100%);
-  mask-image: linear-gradient(90deg, #000 55%, transparent 100%);
-  -webkit-mask-image: linear-gradient(90deg, #000 55%, transparent 100%);
+  width: 1500px;
+  height: 520px;
+  background: linear-gradient(180deg, rgba(14, 13, 11, 0) 0%, rgba(14, 13, 11, 0.8) 38%, rgba(14, 13, 11, 0.66) 69%, rgba(14, 13, 11, 0) 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 27%, #000 67%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 27%, #000 67%, transparent 100%);
   pointer-events: none;
 }
 
@@ -76,15 +78,24 @@
   color: #ede3c4;
 }
 
-.demo {
-  margin-left: -8px;
-}
-
 .lead {
   position: absolute;
   left: 88px;
-  bottom: 148px;
+  bottom: 312px;
   width: 880px;
+}
+
+/* The headline now stands higher, where the photo can be bright: this shade travels with it. */
+.lead::before {
+  content: '';
+  position: absolute;
+  left: -88px;
+  right: -140px;
+  top: -70px;
+  bottom: -40px;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(14, 13, 11, 0.6) 0%, rgba(14, 13, 11, 0.42) 55%, rgba(14, 13, 11, 0) 100%);
+  pointer-events: none;
 }
 
 .headline {
@@ -122,7 +133,68 @@
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* That this is a demonstration, and who made the photos and the typeface, under which licences. */
+/* Whose hands the visitor is about to follow, in brief; the master's own screen comes after the experience. */
+.artisan {
+  position: absolute;
+  left: 88px;
+  bottom: 112px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 20px 44px 20px 20px;
+  border: 1px solid rgba(244, 239, 230, 0.14);
+  border-radius: 84px;
+  background: rgba(22, 21, 19, 0.74);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* The master's hands on the clay, from the clip the visitor is about to follow. */
+.artisanClip {
+  flex: none;
+  display: block;
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 45%;
+  background: #0c0b0a;
+}
+
+.artisanEyebrow {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: #ede3c4;
+}
+
+.artisanName {
+  margin-top: 2px;
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  font-size: 42px;
+  line-height: 1.25;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.artisanField {
+  font-size: 23px;
+  font-weight: 400;
+  color: rgba(244, 239, 230, 0.7);
+}
+
+.artisanBrief {
+  margin-top: 6px;
+  font-size: 25px;
+  line-height: 1.4;
+  letter-spacing: -0.3px;
+  color: rgba(244, 239, 230, 0.9);
+  white-space: nowrap;
+}
+
+/* Who made the photos and the typeface, under which licences. */
 .credits {
   position: absolute;
   left: 88px;

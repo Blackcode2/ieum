@@ -221,3 +221,14 @@
   width: 100%;
   padding: 0 24px;
 }
+
+/* After a take: how long until the artisan's screen comes by itself. */
+.movingOn {
+  margin-top: 6px;
+  font-size: 26px;
+  letter-spacing: -0.3px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.82);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

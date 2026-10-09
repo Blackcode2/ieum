@@ -1,4 +1,4 @@
-import { ARTWORK, EXPERIENCE, MUSEUM } from '../../data/museum';
+import { ARTISAN, ARTWORK, EXPERIENCE, MUSEUM } from '../../data/museum';
 import { KioskStage } from '../../kiosk/KioskStage';
 import ui from '../../kiosk/ui.module.css';
 import { publicUrl } from '../../publicUrl';
@@ -7,7 +7,7 @@ import styles from './MuseumHome.module.css';
 
 /**
  * The kiosk's first screen. It stands next to one artwork: the museum and its photo, what the
- * artwork is, and below that the way into following the master's hands.
+ * artwork is, who the master is in brief, and the way into following the master's hands.
  */
 export function MuseumHome() {
   return (
@@ -27,9 +27,6 @@ export function MuseumHome() {
             <p className={styles.museumEnglish}>{MUSEUM.englishName}</p>
           </div>
           <p className={`${ui.display} ${styles.brand}`}>이음</p>
-          <p className={`${ui.chip} ${styles.demo}`} data-testid="demo-notice">
-            시연용
-          </p>
         </header>
 
         <section className={styles.lead}>
@@ -41,8 +38,18 @@ export function MuseumHome() {
           <p className={styles.sub}>{EXPERIENCE.lead}</p>
           <p className={styles.disclaimer}>{EXPERIENCE.disclaimer}</p>
         </section>
+        <section className={styles.artisan} aria-labelledby="home-artisan" data-testid="home-artisan">
+          <video className={styles.artisanClip} src={publicUrl(ARTISAN.clip)} autoPlay loop muted playsInline aria-hidden="true" />
+          <div>
+            <p className={styles.artisanEyebrow}>{ARTISAN.homeEyebrow}</p>
+            <h2 id="home-artisan" className={styles.artisanName}>
+              <span className={ui.display}>{ARTISAN.name}</span>
+              <span className={styles.artisanField}>{ARTISAN.field}</span>
+            </h2>
+            <p className={styles.artisanBrief}>{ARTISAN.brief}</p>
+          </div>
+        </section>
         <p className={styles.credits}>
-          <span>{MUSEUM.demoNotice}</span>
           <span>{MUSEUM.hero.credit}</span>
           <span>
             {ARTWORK.photo.credit} · {MUSEUM.fontCredit}

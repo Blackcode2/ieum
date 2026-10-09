@@ -12,7 +12,7 @@ import {
 } from '../../cv';
 import { EXPERIENCE } from '../../data/museum';
 import { KioskStage } from '../../kiosk/KioskStage';
-import { IdleReturn, pokeIdle } from '../../kiosk/idle';
+import { IdleReturn, useCountdown } from '../../kiosk/idle';
 import ui from '../../kiosk/ui.module.css';
 import { ROUTES, go } from '../../routes';
 import styles from './LessonPage.module.css';
@@ -39,7 +39,11 @@ const TIP_TRIM = 0.1;
 const FINGERTIPS = new Set([4, 8, 12, 16, 20]);
 /** The back of the hand, from the wrist round the knuckles. */
 const PALM = [0, 1, 2, 5, 9, 13, 17];
-/** With nobody at the screen for this long, outside a take, the kiosk goes back to its first screen. */
+/** The start button waits this long to be pressed; then the kiosk goes back to its first screen. */
+const START_WAIT_S = 40;
+/** After a take the screen waits this long for the photo or another try; then it goes on to the artisan by itself. */
+const MOVE_ON_S = 20;
+/** While loading, or when the camera cannot be used, an untouched screen goes back after this long. */
 const IDLE_S = 90;
 
 /** Hand skeleton as in the design: white bones, red joints. The preview is mirrored, so x is flipped. */
@@ -137,6 +141,19 @@ function drawHandsInFront(canvas: HTMLCanvasElement, video: HTMLVideoElement, ha
   context.globalCompositeOperation = 'source-over';
 }
 
+/**
+ * After a take the visit goes on by itself: the seconds left until the artisan's screen, under the
+ * buttons. A touch starts the wait again. A component of its own, so that only this line re-renders.
+ */
+function MovingOn() {
+  const secondsLeft = useCountdown(MOVE_ON_S, true, () => go(ROUTES.artisan));
+  return (
+    <p className={styles.movingOn} data-testid="moving-on">
+      {secondsLeft}초 뒤 장인 소개로 넘어가요
+    </p>
+  );
+}
+
 export function LessonPage() {
   const cameraRef = useRef<HTMLVideoElement>(null);
   const lessonRef = useRef<HTMLVideoElement>(null);
@@ -190,8 +207,6 @@ export function LessonPage() {
       coach.on('hands', (hands) => {
         drawHandsInFront(handsLayer, camera, hands);
         drawHands(overlay, hands);
-        // Somebody holding their hands up is still here, even without touching the screen.
-        if (hands.length) pokeIdle();
       }),
       coach.on('clay', (shape) => {
         clay = shape;
@@ -241,7 +256,7 @@ export function LessonPage() {
   return (
     <>
       {/* Outside the stage: its notice is sized by the display, and the stage is scaled. */}
-      <IdleReturn seconds={IDLE_S} enabled={!busy && !photo} />
+      <IdleReturn seconds={state === 'ready' ? START_WAIT_S : IDLE_S} enabled={!busy && !photo && state !== 'finished'} />
       <KioskStage height={STAGE_HEIGHT}>
         <main className={styles.page} data-testid="lesson-page" data-coach-state={state}>
           <header className={styles.header}>
@@ -330,13 +345,15 @@ export function LessonPage() {
               )}
               {/*
                 A way on for someone who cannot or will not do the take, or whose take left no pot.
-                Once there is a pot the visit goes on through the photo: that step is not skipped.
+                Once there is a pot no button leads past the photo; a visitor who takes none is
+                moved on after the wait below.
               */}
               {!(state === 'finished' && madePot) && (
                 <button type="button" className={state === 'error' ? ui.primary : ui.ghost} onClick={() => go(ROUTES.artisan)} data-testid="skip">
                   {state === 'finished' ? '장인 소개 보기' : '체험 없이 장인 소개 보기'}
                 </button>
               )}
+              {state === 'finished' && <MovingOn />}
             </div>
           )}
 
