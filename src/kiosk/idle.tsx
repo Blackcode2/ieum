@@ -25,15 +25,21 @@ export function useCountdown(seconds: number, enabled: boolean, onDone: () => vo
   done.current = onDone;
 
   useEffect(() => {
-    pokeIdle();
     setSecondsLeft(seconds);
     if (!enabled) return;
+    pokeIdle();
     const options = { capture: true, passive: true } as const;
     ACTIVITY_EVENTS.forEach((type) => window.addEventListener(type, pokeIdle, options));
+    // Once per run-out: a touch that brings the count back up arms it again.
+    let called = false;
     const timer = window.setInterval(() => {
       const left = Math.ceil(seconds - (performance.now() - lastActivity) / 1000);
       setSecondsLeft(Math.max(0, left));
-      if (left <= 0) done.current();
+      if (left > 0) called = false;
+      else if (!called) {
+        called = true;
+        done.current();
+      }
     }, 500);
     return () => {
       ACTIVITY_EVENTS.forEach((type) => window.removeEventListener(type, pokeIdle, options));

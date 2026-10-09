@@ -148,7 +148,7 @@ function drawHandsInFront(canvas: HTMLCanvasElement, video: HTMLVideoElement, ha
 function MovingOn() {
   const secondsLeft = useCountdown(MOVE_ON_S, true, () => go(ROUTES.artisan));
   return (
-    <p className={styles.movingOn} data-testid="moving-on">
+    <p className={styles.movingOn} role="timer" data-testid="moving-on">
       {secondsLeft}초 뒤 장인 소개로 넘어가요
     </p>
   );

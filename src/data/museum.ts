@@ -18,8 +18,9 @@ export interface Photo {
 // The two photos are stand-ins with open licences until the museum supplies its own; where they
 // come from and what was changed is in public/assets/museum/CREDITS.md.
 //
-// The museum has not seen or agreed to these screens, and since October 2026 they no longer say so
-// (the team's decision): its consent is needed before visitors can reach them under its name.
+// The museum has not seen or agreed to these screens. Since October 2026 they no longer say so
+// (the team's decision), and that version is public at https://blackcode2.github.io/ieum/: the
+// museum's consent is still outstanding.
 export const MUSEUM = {
   name: '국립경주박물관',
   englishName: 'Gyeongju National Museum',
@@ -74,20 +75,21 @@ export const EXPERIENCE = {
 // screens. None of it is confirmed by a real master, and neither the clip nor the photo is known
 // to show this person, so all of it has to be replaced or approved before the screens are shown
 // as fact.
+const ARTISAN_BRIEF = '물레 앞에서 흙을 다뤄 온 도예 장인이에요.';
+
 export const ARTISAN = {
   eyebrow: '화면 속 손의 주인공',
   name: '김소명 장인',
   field: '도예 · 물레 성형',
   /** The first screen says in one line whose hands the visitor is about to follow. */
   homeEyebrow: '함께하는 장인',
-  brief: '물레 앞에서 흙을 다뤄 온 도예 장인이에요.',
+  brief: ARTISAN_BRIEF,
   /** Supplied by the team; who took it and whether it may be shown is not recorded (see CREDITS.md). */
   photo: {
     src: 'assets/museum/artisan.jpg',
     alt: '작업실에서 둥근 항아리를 들고 웃는 장인',
   },
-  intro:
-    '물레 앞에서 흙을 다뤄 온 도예 장인이에요. 영상만으로는 전해지지 않던 손의 높이와 속도를, 이음에서는 한 동작씩 겹쳐 보며 배울 수 있어요.',
+  intro: `${ARTISAN_BRIEF} 영상만으로는 전해지지 않던 손의 높이와 속도를, 이음에서는 한 동작씩 겹쳐 보며 배울 수 있어요.`,
   clip: LESSON.videoUrl,
   clipLabel: '장인의 손',
 };
