@@ -36,11 +36,16 @@ export function ArtisanPage() {
           </figure>
 
           <section className={styles.about} aria-labelledby="artisan-name">
-            <p className={styles.eyebrow}>{ARTISAN.eyebrow}</p>
-            <h1 id="artisan-name" className={`${ui.display} ${styles.name}`}>
-              {ARTISAN.name}
-            </h1>
-            <p className={styles.field}>{ARTISAN.field}</p>
+            <div className={styles.who}>
+              <img className={styles.portrait} src={publicUrl(ARTISAN.photo.src)} alt={ARTISAN.photo.alt} draggable={false} />
+              <div>
+                <p className={styles.eyebrow}>{ARTISAN.eyebrow}</p>
+                <h1 id="artisan-name" className={`${ui.display} ${styles.name}`}>
+                  {ARTISAN.name}
+                </h1>
+                <p className={styles.field}>{ARTISAN.field}</p>
+              </div>
+            </div>
             <p className={styles.intro}>{ARTISAN.intro}</p>
           </section>
 

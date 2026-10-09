@@ -52,6 +52,23 @@
   width: 1056px;
 }
 
+/* The master's portrait to the left of the name. */
+.who {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.portrait {
+  flex: none;
+  display: block;
+  width: 152px;
+  height: 152px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #0c0b0a;
+}
+
 .eyebrow {
   font-size: 26px;
   font-weight: 600;
