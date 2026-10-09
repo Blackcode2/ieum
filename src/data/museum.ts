@@ -5,7 +5,7 @@
 // object page and e뮤지엄 (October 2026). It deliberately does not say how the jar was formed or
 // fired, give the mouth diameter or name the instrument: the sources are silent or disagree there.
 // The experience is the master's craft, not a claim about how this jar was made.
-import { CURRICULUM, LESSON, type CurriculumItem } from './lesson';
+import { LESSON } from './lesson';
 
 export interface Photo {
   /** Path under public/. */
@@ -86,19 +86,26 @@ export const ARTISAN = {
   clipLabel: '장인의 손',
 };
 
-export const CLASS: {
-  label: string;
-  title: string;
-  format: string;
-  lessons: ReadonlyArray<CurriculumItem>;
-  /** Title of the lesson whose movement the kiosk lets a visitor try. */
-  experienced: string;
-  apply: string;
-} = {
-  label: '장인이 연 클래스',
-  title: LESSON.course,
-  format: '이음 온라인 클래스',
-  lessons: CURRICULUM,
-  experienced: '5강. 무너지는 기벽, 양손으로 끌어올리기',
+// The last screen: an event for the souvenir photo, and the ways on from there. The event and the
+// goods are the team's plan (October 2026). Neither the museum nor a master has confirmed them, so
+// the text names no accounts, dates or number of winners.
+export const EVENT = {
+  label: '기념사진 이벤트',
+  /** One entry per line. */
+  title: ['기념사진을 올리면', '원데이 클래스에 초대해 드려요'],
+  steps: [
+    '도자기와 찍은 기념사진을 인스타그램에 올려요',
+    '김소명 장인과 국립경주박물관을 태그해요',
+    '추첨으로 장인의 원데이 클래스에 초대해 드려요',
+  ],
+};
+
+export const CLASS = {
   apply: '클래스 신청하러 가기',
+};
+
+export const GOODS = {
+  open: '굿즈 보기',
+  /** There is no goods screen yet: the button says so. */
+  soon: '굿즈는 곧 만나 볼 수 있어요',
 };

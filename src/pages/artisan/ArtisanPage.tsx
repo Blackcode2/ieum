@@ -1,4 +1,5 @@
-import { ARTISAN, CLASS } from '../../data/museum';
+import { useEffect, useState } from 'react';
+import { ARTISAN, CLASS, EVENT, GOODS } from '../../data/museum';
 import { KioskStage } from '../../kiosk/KioskStage';
 import { IdleReturn } from '../../kiosk/idle';
 import ui from '../../kiosk/ui.module.css';
@@ -8,24 +9,22 @@ import styles from './ArtisanPage.module.css';
 
 /** Nobody is here any more after this long without a touch; the kiosk goes back to its first screen. */
 const IDLE_S = 60;
-
-/** "09:48" -> seconds. */
-function seconds(duration: string): number {
-  const [minutes, rest] = duration.split(':').map(Number);
-  return minutes * 60 + rest;
-}
-
-function totalLength(durations: ReadonlyArray<string>): string {
-  const minutes = Math.round(durations.reduce((sum, d) => sum + seconds(d), 0) / 60);
-  const hours = Math.floor(minutes / 60);
-  return hours ? `약 ${hours}시간 ${minutes % 60}분` : `약 ${minutes}분`;
-}
+/** How long the answer to "굿즈 보기" stays on the screen. */
+const GOODS_NOTE_MS = 4000;
 
 /**
  * Shown by itself after the photo: who the master is whose hands the visitor just followed, the
- * class they teach, and the way to apply.
+ * event for the photo they took, and the ways on: the class, the goods, or back to the start.
  */
 export function ArtisanPage() {
+  const [goodsNote, setGoodsNote] = useState(0);
+
+  useEffect(() => {
+    if (!goodsNote) return;
+    const timer = window.setTimeout(() => setGoodsNote(0), GOODS_NOTE_MS);
+    return () => window.clearTimeout(timer);
+  }, [goodsNote]);
+
   return (
     <>
       <IdleReturn seconds={IDLE_S} />
@@ -45,19 +44,20 @@ export function ArtisanPage() {
             <p className={styles.intro}>{ARTISAN.intro}</p>
           </section>
 
-          <section className={styles.course} aria-labelledby="class-title">
-            <p className={styles.courseLabel}>{CLASS.label}</p>
-            <h2 id="class-title" className={styles.courseTitle}>
-              {CLASS.title}
+          <section className={styles.event} aria-labelledby="event-title" data-testid="event-banner">
+            <p className={styles.eventLabel}>{EVENT.label}</p>
+            <h2 id="event-title" className={`${ui.display} ${styles.eventTitle}`}>
+              {EVENT.title.map((line) => (
+                <span key={line}>{line}</span>
+              ))}
             </h2>
-            <p className={styles.courseMeta}>
-              {CLASS.format} · 총 {CLASS.lessons.length}강 · {totalLength(CLASS.lessons.map((lesson) => lesson.duration))}
-            </p>
-            <ol className={styles.lessons}>
-              {CLASS.lessons.map((lesson) => (
-                <li key={lesson.title} className={lesson.title === CLASS.experienced ? styles.experienced : undefined}>
-                  <span className={styles.lessonTitle}>{lesson.title}</span>
-                  {lesson.title === CLASS.experienced && <span className={styles.tag}>이 체험의 동작</span>}
+            <ol className={styles.eventSteps}>
+              {EVENT.steps.map((step, i) => (
+                <li key={step}>
+                  <span className={styles.stepNumber} aria-hidden="true">
+                    {i + 1}
+                  </span>
+                  {step}
                 </li>
               ))}
             </ol>
@@ -68,10 +68,18 @@ export function ArtisanPage() {
               {CLASS.apply}
               <span aria-hidden="true">→</span>
             </a>
+            <button type="button" className={`${ui.ghost} ${styles.goods}`} onClick={() => setGoodsNote((n) => n + 1)} data-testid="goods">
+              {GOODS.open}
+            </button>
             <a className={`${ui.ghost} ${styles.home}`} href={ROUTES.home} data-testid="go-home">
               처음으로
             </a>
           </div>
+          {goodsNote > 0 && (
+            <p className={styles.goodsNote} role="status" data-testid="goods-note">
+              {GOODS.soon}
+            </p>
+          )}
         </main>
       </KioskStage>
     </>
