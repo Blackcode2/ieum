@@ -90,7 +90,8 @@ export function MainPage() {
                 전통 공예 클래스를 제공하는 서비스입니다.
               </p>
             </div>
-            <a className={styles.continueLink} href={ROUTES.lesson}>
+            {/* On the kiosk this leads to the first screen, where the camera notice is, not straight to the camera. */}
+            <a className={styles.continueLink} href={ROUTES.home}>
               <span className={styles.continueLabel}>
                 이어서 보기
                 <span aria-hidden="true">{'   →'}</span>

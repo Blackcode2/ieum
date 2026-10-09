@@ -20,12 +20,12 @@ export type FeedbackCode =
   | 'follow'
   | 'steady'
   | 'too-fast'
-  | 'too-slow'
   | 'hands-uneven'
   | 'hands-apart'
   | 'hands-close'
   | 'shaky'
   | 'hands-lost'
+  | 'finish-up'
   | 'result-good'
   | 'result-bad'
   | 'no-movement'
@@ -35,6 +35,8 @@ export interface Feedback {
   tone: FeedbackTone;
   code: FeedbackCode;
   message: string;
+  /** Seconds left, where the message counts down to something; the screen can show it large. */
+  count?: number;
 }
 
 export interface OverlayPoint {
@@ -100,7 +102,6 @@ export interface LessonCoach {
   start(): void;
   /** Aborts the current take and returns to 'ready'. */
   stop(): void;
-  setMuted(muted: boolean): void;
   getState(): CoachState;
   getFeedback(): Feedback;
   getTime(): LessonTime;

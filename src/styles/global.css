@@ -30,6 +30,18 @@ body {
   padding: 0;
 }
 
+/* The app runs on a touch screen in a public place: a page may scroll, but a pinch must not zoom it
+   for every later visitor, and a pull at the edge must not reload or bounce it. */
+html {
+  touch-action: pan-x pan-y;
+  overscroll-behavior: none;
+}
+
+a,
+img {
+  -webkit-user-drag: none;
+}
+
 body {
   font-family: var(--font-pretendard);
   -webkit-font-smoothing: antialiased;

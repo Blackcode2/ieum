@@ -15,7 +15,7 @@ export function MuseumHome() {
       background="#11100e"
       backdrop={
         <>
-          <img className={styles.hero} src={publicUrl(MUSEUM.hero.src)} alt="" />
+          <img className={styles.hero} src={publicUrl(MUSEUM.hero.src)} alt="" draggable={false} />
           <div className={styles.shade} />
         </>
       }
@@ -27,6 +27,9 @@ export function MuseumHome() {
             <p className={styles.museumEnglish}>{MUSEUM.englishName}</p>
           </div>
           <p className={`${ui.display} ${styles.brand}`}>이음</p>
+          <p className={`${ui.chip} ${styles.demo}`} data-testid="demo-notice">
+            시연용
+          </p>
         </header>
 
         <section className={styles.lead}>
@@ -36,15 +39,19 @@ export function MuseumHome() {
             ))}
           </h1>
           <p className={styles.sub}>{EXPERIENCE.lead}</p>
+          <p className={styles.disclaimer}>{EXPERIENCE.disclaimer}</p>
         </section>
         <p className={styles.credits}>
+          <span>{MUSEUM.demoNotice}</span>
           <span>{MUSEUM.hero.credit}</span>
-          <span>{ARTWORK.photo.credit}</span>
+          <span>
+            {ARTWORK.photo.credit} · {MUSEUM.fontCredit}
+          </span>
         </p>
 
         <article className={styles.card} aria-labelledby="artwork-title">
           <div className={styles.work}>
-            <img className={styles.photo} src={publicUrl(ARTWORK.photo.src)} alt={ARTWORK.photo.alt} />
+            <img className={styles.photo} src={publicUrl(ARTWORK.photo.src)} alt={ARTWORK.photo.alt} draggable={false} />
             <div>
               <ul className={styles.chips}>
                 {ARTWORK.labels.map((label) => (

@@ -10,7 +10,7 @@
   height: 1027px;
   overflow: hidden;
   border-radius: 20px;
-  pointer-events: none;
+  /* Takes the touches: nothing under it may be pressed while the picture is being taken. */
 }
 
 .pose {
@@ -31,34 +31,11 @@
   white-space: nowrap;
 }
 
+/* In the middle of the camera panel; the look of the figure is shared with the take's own count. */
 .count {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 250px;
-  color: #fff;
-  font-family: var(--font-inter);
-  font-size: 300px;
-  font-weight: 700;
-  line-height: 1;
-  text-align: center;
-  text-shadow: 0 6px 40px rgba(0, 0, 0, 0.55);
-  animation: tick 1s ease-out both;
-}
-
-@keyframes tick {
-  from {
-    opacity: 0;
-    transform: scale(1.25);
-  }
-  18% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0.85;
-    transform: scale(0.96);
-  }
+  left: 393px;
+  top: 300px;
 }
 
 .flash {
@@ -81,7 +58,6 @@
   position: absolute;
   right: 32px;
   top: 28px;
-  pointer-events: auto;
 }
 
 /* ---- the finished photo, over the whole screen ---- */
@@ -153,7 +129,7 @@
 
 .timer {
   margin-top: 28px;
-  font-size: 24px;
+  font-size: 26px;
   text-align: center;
   color: rgba(244, 239, 230, 0.66);
   font-variant-numeric: tabular-nums;
@@ -174,7 +150,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .count,
   .flash,
   .review {
     animation: none;

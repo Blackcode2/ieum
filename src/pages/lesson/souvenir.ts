@@ -60,7 +60,9 @@ export async function composeSouvenir(source: SouvenirSource): Promise<Blob> {
   // The picture: the same mirrored centre crop as the panel, then the pot, then the hands.
   context.save();
   context.beginPath();
-  context.roundRect(MARGIN, MARGIN, PHOTO_WIDTH, photoHeight, 28);
+  // Rounded corners where the browser can draw them; older ones get square corners, not a failed photo.
+  if (context.roundRect) context.roundRect(MARGIN, MARGIN, PHOTO_WIDTH, photoHeight, 28);
+  else context.rect(MARGIN, MARGIN, PHOTO_WIDTH, photoHeight);
   context.clip();
   if (video.videoWidth > 0) {
     const crop = cameraCrop(video, source.aspect);
@@ -70,8 +72,8 @@ export async function composeSouvenir(source: SouvenirSource): Promise<Blob> {
     context.drawImage(video, crop.x, crop.y, crop.width, crop.height, 0, 0, PHOTO_WIDTH, photoHeight);
     context.restore();
   } else {
-    // No camera picture (the scripted coach): the panel's own grey, so the pot still has a ground.
-    context.fillStyle = '#d9d9d9';
+    // No camera picture (the scripted coach): the empty panel's own colour, so the pot still has a ground.
+    context.fillStyle = '#24221f';
     context.fillRect(MARGIN, MARGIN, PHOTO_WIDTH, photoHeight);
   }
   source.drawWheel?.(context, MARGIN, MARGIN, PHOTO_WIDTH, photoHeight);
@@ -121,8 +123,11 @@ export function canShareFiles(): boolean {
   }
 }
 
-/** Opens the device's share sheet with the photo, or saves it as a file where there is none. */
-export async function shareSouvenir(photo: Blob): Promise<'shared' | 'saved' | 'cancelled'> {
+/**
+ * Opens the device's share sheet with the photo, or saves it as a file where there is none. A share
+ * sheet that fails is reported as such: the photo is not saved in its place without being asked.
+ */
+export async function shareSouvenir(photo: Blob): Promise<'shared' | 'saved' | 'cancelled' | 'failed'> {
   const file = photoFile(photo);
   if (canShareFiles()) {
     try {
@@ -130,7 +135,8 @@ export async function shareSouvenir(photo: Blob): Promise<'shared' | 'saved' | '
       return 'shared';
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return 'cancelled';
-      console.warn('Photo: sharing failed, saving the file instead', error);
+      console.warn('Photo: sharing failed', error);
+      return 'failed';
     }
   }
   const url = URL.createObjectURL(file);

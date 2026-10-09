@@ -22,3 +22,15 @@ Stand-ins with open licences, used until the museum supplies its own photographs
   https://www.kogl.or.kr/info/license.do
 - Changes: cropped to a square around the jar and resized to 1100 x 1100.
 - The jar shown is the one from 계림로 30호 무덤, held by 국립경주박물관 (소장품번호 기탁140).
+
+## Typeface of the titles
+
+- 신라문화체 M (Shilla Culture M), made by 경주시 (Gyeongju City). Free to use; the font file may not be
+  changed, sold or passed on, so it is not in this repository and is fetched unchanged when the
+  project is installed (scripts/fetch-font.mjs).
+
+## Not cleared
+
+- The clip the visitor follows (public/lesson/lesson.mp4) and the photographs on the earlier class
+  page (public/assets/main) have no recorded source or permission. They are in the demo as
+  stand-ins and must be replaced or cleared before the screens are used for real.

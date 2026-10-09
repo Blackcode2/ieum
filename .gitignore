@@ -6,6 +6,7 @@ dist
 # Copied or downloaded on `npm install` (see scripts/)
 public/mediapipe/wasm
 public/assets/fonts/*.woff2
+public/THIRD-PARTY-NOTICES.txt
 
 # Source recordings and test takes: not ours to publish, or show a person
 /기술자_영상.mp4

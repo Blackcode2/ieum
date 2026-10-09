@@ -1,7 +1,7 @@
 import { Clay, shapeScore, type ClayShape } from './clay';
 import { CoachEmitter } from './emitter';
 import { HandTracker } from './handTracker';
-import { countdownFeedback, feedback, resultFeedback } from './messages';
+import { countdownFeedback, feedback, finishUpFeedback, resultFeedback, waitingFeedback } from './messages';
 import {
   DEFAULT_CONFIG,
   START_FRAMES,
@@ -11,6 +11,7 @@ import {
   measureHands,
   type HandsFrame,
   type HandsMeasure,
+  type LiveCode,
   type Point,
   type ReferenceFile,
   type ReferenceMotion,
@@ -30,10 +31,12 @@ export interface RealCoachOptions {
   referenceUrl: string;
   wasmBase: string;
   modelUrl: string;
-  /** A recording to follow instead of the webcam: the fallback if the camera fails, and the test input. */
+  /** A recording to follow instead of the webcam: the test input. */
   cameraFileUrl?: string | null;
 }
 
+/** Loading the hand tracker, the clip and the reference motion is given up on after this long, so that the screen can say so. */
+const LOAD_LIMIT_MS = 30_000;
 const COUNTDOWN_S = 3;
 /** The start pose is measured over the last moments before the clip starts. */
 const READY_WINDOW_MS = 500;
@@ -46,6 +49,8 @@ const SETTLE_WAIT_MS = 4000;
 const REST_TOLERANCE = 0.25;
 const REST_SPAN_MS = 350;
 const IN_VIEW_MS = 150;
+/** After the clip, a learner who is still going is told so only if the take lasts longer than this. */
+const FINISH_UP_AFTER_MS = 800;
 /** The idle hint changes, and a lump the hands left behind goes, only after this long. */
 const HINT_HOLD_MS = 400;
 /** Before a take the lump follows the hands; it is placed from this much recent tracking. */
@@ -77,8 +82,10 @@ export class RealCoach implements LessonCoach {
   private cropContext: CanvasRenderingContext2D | null = null;
   private ready: Array<{ at: number; measure: HandsMeasure }> = [];
   private bothHands = false;
-  /** The countdown is over and the clip waits for the hands to come to rest. */
-  private settling = false;
+  /** The countdown is over and the clip waits for the hands to come to rest, until this moment; 0 otherwise. */
+  private settleUntil = 0;
+  /** When the clip ended, while the take goes on for a learner who has not finished; 0 otherwise. */
+  private clipEndedAt = 0;
   private handsSeenSince = 0;
   private handsMissingSince = 0;
   private lastTimeEvent = 0;
@@ -87,7 +94,18 @@ export class RealCoach implements LessonCoach {
   private timers: number[] = [];
   private cameraLoop = 0;
   private lessonLoop = 0;
-  private readonly onLessonEnded = () => this.finishTake();
+  /**
+   * The clip is over, the take is not: a learner who started late or rises slowly gets more time.
+   * The take ends when they have finished or that time is used up (see processFrame).
+   */
+  private readonly onLessonEnded = () => {
+    if (this.state !== 'running' || !this.scorer || this.clipEndedAt) return;
+    this.clipEndedAt = performance.now();
+    this.stopLessonClock();
+    this.setTime(this.durationMs());
+    // The last word, should camera frames stop coming.
+    this.timers.push(window.setTimeout(() => this.finishTake(), DEFAULT_CONFIG.extraMs + 200));
+  };
   /** Playback stopped from outside (media key, headset, OS): the take cannot finish, so cancel it. */
   private readonly onLessonPaused = () => {
     if (this.state === 'running' && !this.lessonVideo.ended) this.stop();
@@ -104,16 +122,21 @@ export class RealCoach implements LessonCoach {
     this.emitter.emit('state', this.state);
     this.emitter.emit('feedback', this.current);
 
+    const creating = HandTracker.create({ wasmBase: this.options.wasmBase, modelUrl: this.options.modelUrl });
     try {
-      const [{ reference, modelPot }, tracker] = await Promise.all([
-        this.loadReference(),
-        HandTracker.create({ wasmBase: this.options.wasmBase, modelUrl: this.options.modelUrl }),
-        this.prepareLesson(),
-      ]);
+      const [{ reference, modelPot }, tracker] = await within(
+        Promise.all([this.loadReference(), creating, this.prepareLesson()]),
+        LOAD_LIMIT_MS,
+      );
       this.reference = reference;
       this.modelPot = modelPot;
       this.tracker = tracker;
     } catch (error) {
+      // A tracker that arrives after loading was given up on is not ours any more.
+      void creating.then(
+        (late) => late.close(),
+        () => {},
+      );
       if (this.disposed) {
         this.release();
         return;
@@ -157,7 +180,7 @@ export class RealCoach implements LessonCoach {
     }
     this.timers.push(
       window.setTimeout(() => {
-        this.settling = true;
+        this.settleUntil = performance.now() + SETTLE_WAIT_MS;
         this.beginWhenAtRest(performance.now());
       }, COUNTDOWN_S * 1000),
     );
@@ -171,10 +194,6 @@ export class RealCoach implements LessonCoach {
     this.handsSeenSince = 0;
     this.handsMissingSince = 0;
     this.setFeedback(feedback(this.bothHands ? 'press-play' : 'show-hands'));
-  }
-
-  setMuted(muted: boolean): void {
-    if (this.lessonVideo) this.lessonVideo.muted = muted;
   }
 
   getState(): CoachState {
@@ -227,7 +246,8 @@ export class RealCoach implements LessonCoach {
     }
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
-      video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+      // The camera that faces the visitor, on a device that has two.
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
     });
     if (this.disposed) {
       stream.getTracks().forEach((track) => track.stop());
@@ -266,13 +286,13 @@ export class RealCoach implements LessonCoach {
       this.beginTake();
       return;
     }
-    const code: FeedbackCode = this.bothHands ? 'hold-still' : 'show-hands';
-    if (this.current.code !== code) this.setFeedback(feedback(code));
+    const next = waitingFeedback(this.bothHands ? 'hold-still' : 'show-hands', Math.max(1, Math.ceil((this.settleUntil - now) / 1000)));
+    if (next.code !== this.current.code || next.message !== this.current.message) this.setFeedback(next);
   }
 
   private beginTake(): void {
     if (!this.reference) return;
-    this.settling = false;
+    this.settleUntil = 0;
     this.timers.forEach((id) => window.clearTimeout(id));
     this.timers = [];
     const startPose = this.startPose(performance.now(), false);
@@ -307,7 +327,10 @@ export class RealCoach implements LessonCoach {
 
   private finishTake(): void {
     if (this.state !== 'running' || !this.scorer) return;
-    const motion = this.scorer.finish();
+    this.timers.forEach((id) => window.clearTimeout(id));
+    this.timers = [];
+    const motion = this.scorer.finish(this.takeMs(performance.now()));
+    this.clipEndedAt = 0;
     const pot = this.clay.shape();
     const shape = motion.score !== null && this.modelPot && pot.radii.length ? shapeScore(pot, this.modelPot) : null;
     const result = { ...motion, shapeScore: shape };
@@ -328,7 +351,8 @@ export class RealCoach implements LessonCoach {
   private clearTake(): void {
     this.timers.forEach((id) => window.clearTimeout(id));
     this.timers = [];
-    this.settling = false;
+    this.settleUntil = 0;
+    this.clipEndedAt = 0;
     this.scorer = null;
     this.stopLessonClock();
     if (this.lessonVideo) {
@@ -397,18 +421,37 @@ export class RealCoach implements LessonCoach {
       this.handsMissingSince ||= now;
     }
     if (this.state === 'running' && this.scorer) {
-      const code = this.scorer.push(this.lessonVideo.currentTime * 1000, measure);
-      if (code !== this.current.code) this.setFeedback(feedback(code));
+      const takeMs = this.takeMs(now);
+      const code = this.scorer.push(takeMs, measure);
       this.clay.press(measure, now);
+      const leftMs = this.durationMs() + DEFAULT_CONFIG.extraMs - takeMs;
+      if (this.clipEndedAt && (leftMs <= 0 || this.scorer.finished(takeMs))) this.finishTake();
+      else this.showLive(code, takeMs, leftMs);
     } else if (this.state === 'countdown') {
       if (measure) this.ready.push({ at: now, measure });
       this.placeClay(now, measure);
-      if (this.settling) this.beginWhenAtRest(now);
+      if (this.settleUntil) this.beginWhenAtRest(now);
     } else if (this.state === 'ready') {
       this.updateHint(now);
       this.placeClay(now, measure);
     }
     this.emitter.emit('clay', this.clay.placed ? this.clay.shape() : null);
+  }
+
+  /** Time into the take: the clip's own time while it plays, and counting on after it has ended. */
+  private takeMs(now: number): number {
+    // A frame's time can be a little earlier than the moment the clip was seen to end.
+    return this.clipEndedAt ? this.durationMs() + Math.max(0, now - this.clipEndedAt) : this.lessonVideo.currentTime * 1000;
+  }
+
+  /** The pill during a take. After the clip a calm take is told that there is still time, and how much. */
+  private showLive(code: LiveCode, takeMs: number, leftMs: number): void {
+    const calm = code === 'steady' || code === 'follow';
+    const next =
+      this.clipEndedAt && calm && takeMs - this.durationMs() > FINISH_UP_AFTER_MS
+        ? finishUpFeedback(Math.ceil(leftMs / 1000))
+        : feedback(code);
+    if (next.code !== this.current.code || next.message !== this.current.message) this.setFeedback(next);
   }
 
   /**
@@ -538,6 +581,14 @@ function throwModelPot(file: ReferenceFile): ClayShape {
   measures.forEach((measure, i) => clay.press(measure, file.frames[i].t));
   const shape = clay.shape();
   return { ...shape, radii: [...shape.radii] };
+}
+
+/** Rejects if `work` has not settled in time. */
+function within<T>(work: Promise<T>, limitMs: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error(`no answer after ${limitMs} ms`)), limitMs);
+    work.then(resolve, reject).finally(() => window.clearTimeout(timer));
+  });
 }
 
 /** Points a <video> at a file and resolves once its first frame can be shown. */

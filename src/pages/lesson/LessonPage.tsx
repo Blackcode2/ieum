@@ -2,11 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   HAND_CONNECTIONS,
   createCoach,
+  usesTestInput,
   type ClayShape,
   type CoachState,
   type Feedback,
   type LessonCoach,
-  type LessonTime,
   type OverlayHand,
   type SessionResult,
 } from '../../cv';
@@ -14,7 +14,6 @@ import { EXPERIENCE } from '../../data/museum';
 import { KioskStage } from '../../kiosk/KioskStage';
 import { IdleReturn, pokeIdle } from '../../kiosk/idle';
 import ui from '../../kiosk/ui.module.css';
-import { publicUrl } from '../../publicUrl';
 import { ROUTES, go } from '../../routes';
 import styles from './LessonPage.module.css';
 import { PhotoStep } from './PhotoStep';
@@ -42,17 +41,6 @@ const FINGERTIPS = new Set([4, 8, 12, 16, 20]);
 const PALM = [0, 1, 2, 5, 9, 13, 17];
 /** With nobody at the screen for this long, outside a take, the kiosk goes back to its first screen. */
 const IDLE_S = 90;
-
-const ICONS = {
-  play: publicUrl('assets/lesson/play.svg'),
-  volume: publicUrl('assets/lesson/volume.svg'),
-};
-
-function clock(ms: number): string {
-  const seconds = Math.max(0, Math.floor(ms / 1000));
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}`;
-}
 
 /** Hand skeleton as in the design: white bones, red joints. The preview is mirrored, so x is flipped. */
 function drawHands(canvas: HTMLCanvasElement, hands: ReadonlyArray<OverlayHand>): void {
@@ -157,15 +145,14 @@ export function LessonPage() {
   const handsRef = useRef<HTMLCanvasElement>(null);
   const coachRef = useRef<LessonCoach | null>(null);
   const sceneRef = useRef<WheelScene | null>(null);
-  const startedAt = useRef(0);
 
   const [state, setState] = useState<CoachState>('loading');
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [time, setTime] = useState<LessonTime>({ currentMs: 0, durationMs: 0 });
-  const [muted, setMuted] = useState(false);
   const [result, setResult] = useState<SessionResult | null>(null);
   /** The photo step is open: countdown, the picture, sharing. */
   const [photo, setPhoto] = useState(false);
+  /** The wheel is drawn. Without it (no WebGL) the take still runs, but there is no pot to be photographed with. */
+  const [wheelDrawn, setWheelDrawn] = useState(false);
 
   useEffect(() => {
     const camera = cameraRef.current;
@@ -186,6 +173,7 @@ export function LessonPage() {
         scene = new WheelScene(wheel, PANEL_WIDTH / PANEL_HEIGHT, PANEL_WIDTH * WHEEL_DENSITY, PANEL_HEIGHT * WHEEL_DENSITY);
         scene.setClay(clay);
         sceneRef.current = scene;
+        setWheelDrawn(true);
       })
       .catch((error) => console.warn('The wheel could not be drawn; the lesson runs without it.', error));
     const coach = createCoach();
@@ -197,7 +185,6 @@ export function LessonPage() {
         if (next !== 'finished') setResult(null);
       }),
       coach.on('feedback', setFeedback),
-      coach.on('time', setTime),
       coach.on('result', setResult),
       // Drawn straight to the canvas: thirty updates a second should not go through React.
       coach.on('hands', (hands) => {
@@ -219,6 +206,7 @@ export function LessonPage() {
       coach.dispose();
       scene?.dispose();
       sceneRef.current = null;
+      setWheelDrawn(false);
       coachRef.current = null;
     };
   }, []);
@@ -228,26 +216,12 @@ export function LessonPage() {
   /** No take is running and the photo step is closed: the screen says what can be done next. */
   const resting = !photo && (state === 'ready' || state === 'finished' || state === 'error');
   /** The take was scored, so there is a pot on the wheel to be photographed with. */
-  const madePot = result !== null && result.score !== null && result.shapeScore !== null;
-  const scores = madePot ? `동작 ${result.score}% · 모양 ${result.shapeScore}%` : null;
+  const madePot = wheelDrawn && result !== null && result.score !== null && result.shapeScore !== null;
+  const scores = madePot ? `동작 일치 ${result.score}% · 모양 일치 ${result.shapeScore}%` : null;
 
-  const onPlay = () => {
-    const coach = coachRef.current;
-    if (!coach) return;
-    if (busy) {
-      // The second click of a double-click must not cancel the take it just started.
-      if (performance.now() - startedAt.current < 500) return;
-      coach.stop();
-    } else {
-      startedAt.current = performance.now();
-      coach.start();
-    }
-  };
-
-  const onVolume = () => {
-    const next = !muted;
-    setMuted(next);
-    coachRef.current?.setMuted(next);
+  const start = () => {
+    // With the photo step open, a new take would swap the pot under the visitor's photo.
+    if (!photo) coachRef.current?.start();
   };
 
   const capture = useCallback(() => {
@@ -274,11 +248,17 @@ export function LessonPage() {
             <h1 className={styles.title}>{EXPERIENCE.title}</h1>
             <p className={styles.course}>{EXPERIENCE.guide}</p>
           </header>
-          {!unavailable && (
-            <p className={styles.cameraNote}>
-              <span className={styles.cameraDot} aria-hidden="true" />
-              카메라 사용 중 · 영상은 저장하지 않아요
+          {usesTestInput() ? (
+            <p className={styles.cameraNote} data-testid="test-input">
+              테스트 입력 · 카메라를 쓰지 않아요
             </p>
+          ) : (
+            !unavailable && (
+              <p className={styles.cameraNote}>
+                <span className={styles.cameraDot} aria-hidden="true" />
+                카메라 사용 중 · 영상은 녹화하지 않아요
+              </p>
+            )
           )}
           <a className={`${ui.ghost} ${styles.home}`} href={ROUTES.home} data-testid="go-home">
             처음으로
@@ -318,61 +298,39 @@ export function LessonPage() {
             </p>
           )}
 
-          <div className={styles.controls}>
-            <button
-              type="button"
-              className={styles.playButton}
-              onClick={onPlay}
-              disabled={unavailable}
-              aria-label={busy ? '멈추기' : '따라 하기 시작'}
-              data-testid="play-button"
-            >
-              <img src={ICONS.play} alt="" />
-            </button>
-            <button
-              type="button"
-              className={styles.volumeButton}
-              onClick={onVolume}
-              aria-label="소리"
-              aria-pressed={muted}
-              data-testid="volume-button"
-            >
-              <img src={ICONS.volume} alt="" />
-            </button>
-            <p className={styles.time} data-testid="lesson-time">
-              {clock(time.currentMs)} / {clock(time.durationMs)}
+          {state === 'countdown' && feedback?.count !== undefined && (
+            <p key={feedback.count} className={`${ui.digit} ${styles.bigCount}`} aria-hidden="true">
+              {feedback.count}
             </p>
-          </div>
+          )}
+          {busy && (
+            <button type="button" className={`${ui.ghost} ${styles.stop}`} onClick={() => coachRef.current?.stop()} data-testid="stop-take">
+              멈추기
+            </button>
+          )}
 
-          {/*
-            The next step, in words, whenever no take is running: start; after a take the photo with
-            the pot or another try; and always a way on for someone who cannot or will not do the take.
-          */}
+          {/* The next step, in words, whenever no take is running: start; after a take the photo with the pot, or another try. */}
           {resting && (
             <div className={styles.next} data-testid="next-actions">
               {state === 'ready' && (
-                <button type="button" className={`${ui.primary} ${styles.wide}`} onClick={onPlay} data-testid="start-take">
+                <button type="button" className={ui.primary} onClick={start} data-testid="start-take">
                   따라 하기 시작
                 </button>
               )}
               {state === 'finished' && madePot && (
-                <button type="button" className={`${ui.primary} ${styles.wide}`} onClick={() => setPhoto(true)} data-testid="take-photo">
-                  작품과 사진 찍기
+                <button type="button" className={ui.primary} onClick={() => setPhoto(true)} data-testid="take-photo">
+                  내가 빚은 도자기와 사진 찍기
                   <span aria-hidden="true">→</span>
                 </button>
               )}
               {state === 'finished' && (
-                <button type="button" className={madePot ? ui.ghost : `${ui.primary} ${styles.wide}`} onClick={onPlay} data-testid="retry">
+                <button type="button" className={madePot ? ui.ghost : ui.primary} onClick={start} data-testid="retry">
                   다시 해 보기
                 </button>
               )}
-              <button
-                type="button"
-                className={`${ui.ghost} ${state === 'finished' && madePot ? '' : styles.wide}`}
-                onClick={() => go(ROUTES.artisan)}
-                data-testid="skip"
-              >
-                {state === 'finished' ? '건너뛰기' : '체험 없이 장인 소개 보기'}
+              {/* Always a way on, for someone who cannot or will not do the take or the photo. */}
+              <button type="button" className={state === 'error' ? ui.primary : ui.ghost} onClick={() => go(ROUTES.artisan)} data-testid="skip">
+                {state !== 'finished' ? '체험 없이 장인 소개 보기' : madePot ? '사진 없이 장인 소개 보기' : '장인 소개 보기'}
               </button>
             </div>
           )}

@@ -34,6 +34,22 @@
   gap: 36px;
 }
 
+/* The names sit on the stage and the photo on the display, so on a display of another shape the
+   photo's bright roof can come to lie behind them. This shade travels with the names. */
+.museum::before {
+  content: '';
+  position: absolute;
+  left: -88px;
+  top: -68px;
+  z-index: -1;
+  width: 1100px;
+  height: 320px;
+  background: linear-gradient(180deg, rgba(14, 13, 11, 0.8) 0%, rgba(14, 13, 11, 0.66) 50%, rgba(14, 13, 11, 0) 100%);
+  mask-image: linear-gradient(90deg, #000 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 55%, transparent 100%);
+  pointer-events: none;
+}
+
 .museumName {
   font-size: 58px;
   line-height: 1.2;
@@ -60,11 +76,15 @@
   color: #ede3c4;
 }
 
+.demo {
+  margin-left: -8px;
+}
+
 .lead {
   position: absolute;
   left: 88px;
-  bottom: 132px;
-  width: 860px;
+  bottom: 148px;
+  width: 880px;
 }
 
 .headline {
@@ -87,18 +107,30 @@
   letter-spacing: -0.4px;
   color: rgba(244, 239, 230, 0.9);
   word-break: keep-all;
+  text-wrap: balance;
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* Who made the two photos, and under which licence. */
+/* What the exercise is not, in smaller type under the lead. */
+.disclaimer {
+  margin-top: 10px;
+  font-size: 24px;
+  line-height: 1.5;
+  letter-spacing: -0.3px;
+  color: rgba(244, 239, 230, 0.78);
+  word-break: keep-all;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* That this is a demonstration, and who made the photos and the typeface, under which licences. */
 .credits {
   position: absolute;
   left: 88px;
-  bottom: 40px;
-  width: 860px;
+  bottom: 34px;
+  width: 920px;
   font-size: 17px;
   line-height: 1.45;
-  color: rgba(244, 239, 230, 0.6);
+  color: rgba(244, 239, 230, 0.66);
 }
 
 .credits span {
@@ -226,10 +258,11 @@
 }
 
 .note {
-  margin-top: 16px;
-  font-size: 24px;
+  margin-top: 14px;
+  font-size: 23px;
   line-height: 1.4;
+  letter-spacing: -0.4px;
   text-align: center;
-  color: rgba(244, 239, 230, 0.66);
+  color: rgba(244, 239, 230, 0.7);
   white-space: nowrap;
 }

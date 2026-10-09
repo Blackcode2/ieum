@@ -10,6 +10,10 @@ export const ROUTES = {
   ieum: '#/ieum',
 } as const;
 
+/**
+ * Changes the screen without adding to the browser's history: on a shared device the next visitor's
+ * back gesture must not walk through the last visitor's screens.
+ */
 export function go(route: string): void {
-  window.location.hash = route;
+  window.location.replace(route);
 }

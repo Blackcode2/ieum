@@ -76,3 +76,40 @@
   font-family: 'Shilla Culture M', 'Nanum Myeongjo', AppleMyungjo, Batang, serif;
   font-weight: 500;
 }
+
+/* A count before something happens (the take, the photo): a large figure on a dark disc, so that it
+   reads over a pale pot as well as over a dark sweater. Each new figure is a new element. */
+.digit {
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: rgba(17, 17, 17, 0.72);
+  color: #fff;
+  font-family: var(--font-inter);
+  font-size: 240px;
+  font-weight: 700;
+  line-height: 360px;
+  text-align: center;
+  animation: digit 1s ease-out both;
+}
+
+@keyframes digit {
+  from {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0.9;
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .digit {
+    animation: none;
+  }
+}

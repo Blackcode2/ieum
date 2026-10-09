@@ -177,19 +177,23 @@ function curveAt(curve: ReadonlyArray<number>, stepMs: number, tMs: number): num
 
 // ---------------------------------------------------------------------------------------------------
 // Scoring a take
+//
+// The clip shows the movement once, at the artisan's pace. A take lasts longer than the clip: a
+// learner may watch first, start later or rise more slowly, and is not marked down for it as long as
+// the movement itself is the artisan's. What counts against a take is rushing, hands that drift
+// apart or together, one hand above the other, shaking, and not getting to the top.
 
 export interface CoachConfig {
   /** No judgement during the first moments: a time shift and a height offset look the same there. */
   followMs: number;
-  /** A follower is always a little behind the video; being this late is not "slow". */
-  lagAllowMs: number;
-  /** Ahead of the artisan by this share of the whole rise: too fast. */
+  /** A take may last this much longer than the clip, for a learner who is still on the way up. */
+  extraMs: number;
+  /** Rise, as a share of the whole, from which the learner counts as having started. */
+  startProgress: number;
+  /** Ahead of the artisan on the screen by this share of the whole rise: too fast. */
   fastLead: number;
-  /** Behind (after the lag allowance) by this share of the whole rise: too slow. */
-  slowLag: number;
-  /** Rise over the last second, relative to the reference's: beyond these the pace is off. */
+  /** Rise over the last second, relative to the artisan's pace: beyond this the pace is too fast. */
   fastRatio: number;
-  slowRatio: number;
   /** Hands drifting apart or together, relative to their own start distance. */
   gapTol: number;
   /** One hand moving above the other, in hand sizes. */
@@ -202,6 +206,17 @@ export interface CoachConfig {
   badHoldMs: number;
   goodHoldMs: number;
   minShowMs: number;
+  /**
+   * After the clip the take ends as soon as the learner has finished: hands held still for restMs
+   * near the top (from arriveProgress of the whole rise), or for pauseMs lower down, where it may
+   * only be a pause; "still" is within restTravel of the whole rise. Hands that come down by
+   * dropTravel of the whole rise, or leave the picture, have finished too.
+   */
+  restMs: number;
+  pauseMs: number;
+  arriveProgress: number;
+  restTravel: number;
+  dropTravel: number;
   /** Final score. */
   minCoverage: number;
   minTravel: number;
@@ -216,11 +231,10 @@ export interface CoachConfig {
 // re-checked whenever the reference take, the camera position or the lesson changes.
 export const DEFAULT_CONFIG: CoachConfig = {
   followMs: 900,
-  lagAllowMs: 300,
+  extraMs: 7000,
+  startProgress: 0.06,
   fastLead: 0.13,
-  slowLag: 0.16,
   fastRatio: 1.45,
-  slowRatio: 0.5,
   gapTol: 0.22,
   tiltTol: 0.9,
   shakeTol: 0.09,
@@ -228,6 +242,11 @@ export const DEFAULT_CONFIG: CoachConfig = {
   badHoldMs: 350,
   goodHoldMs: 300,
   minShowMs: 700,
+  restMs: 500,
+  pauseMs: 1500,
+  arriveProgress: 0.8,
+  restTravel: 0.03,
+  dropTravel: 0.08,
   minCoverage: 0.6,
   minTravel: 0.4,
   errorFree: 0.02,
@@ -240,7 +259,6 @@ export type LiveCode =
   | 'follow'
   | 'steady'
   | 'too-fast'
-  | 'too-slow'
   | 'hands-apart'
   | 'hands-close'
   | 'hands-uneven'
@@ -259,34 +277,45 @@ interface Sample {
 }
 
 const SCALES = [0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25];
+/** A follower reacts to what the artisan does: each moment may be this late against the fitted pace. */
 const LAGS_MS = [0, 100, 200, 300];
+/** The final comparison tries a later start in these steps, and these slower paces (1 is the artisan's). */
+const START_STEP_MS = 250;
+const STRETCHES = [1, 1.1, 1.2, 1.35, 1.5, 1.75, 2, 2.25];
+/** The fitted movement has to be over when the take ends, give or take this much. */
+const END_SLACK_MS = 300;
 const SPEED_WINDOW_MS = 1000;
 const SHAKE_WINDOW_MS = 500;
 
-/** Scores one play-through of the lesson: live feedback per camera frame, and a final result. */
+/** Scores one take of the lesson: live feedback per camera frame, and a final result. */
 export class TakeScorer {
   private readonly samples: Sample[] = [];
   private unit = 0;
   private anchorY = 0;
   private gap0 = 0;
   private tilt0 = 0;
-  private riseOffset = 0;
   private anchored = false;
   private frames = 0;
   private tracked = 0;
   private judged = 0;
   private faulty = 0;
   private lastSeenMs = 0;
+  /** The highest the hands have been so far, in hand sizes above the start pose. */
+  private peak = 0;
   private shown: LiveCode = 'follow';
   private shownSince = 0;
   private candidate: LiveCode = 'follow';
   private candidateSince = 0;
   private readonly reference: ReferenceMotion;
   private readonly config: CoachConfig;
+  /** The reference's rise as it only ever goes up, so that a height can be looked up as a moment. */
+  private readonly climb: number[];
 
   constructor(reference: ReferenceMotion, config: CoachConfig = DEFAULT_CONFIG) {
     this.reference = reference;
     this.config = config;
+    let top = -Infinity;
+    this.climb = reference.rise.map((rise) => (top = Math.max(top, rise)));
   }
 
   /** `ready` are measurements taken while the learner held the start pose, just before the clip starts. */
@@ -299,7 +328,10 @@ export class TakeScorer {
     this.anchored = true;
   }
 
-  /** Feed one camera frame at lesson time tMs. Returns the feedback to show now. */
+  /**
+   * Feed one camera frame at take time tMs: the clip's own time while it plays, and counting on
+   * after it has ended. Returns the feedback to show now.
+   */
   push(tMs: number, measure: HandsMeasure | null): LiveCode {
     this.frames++;
     if (!measure) {
@@ -308,16 +340,13 @@ export class TakeScorer {
     }
     this.tracked++;
     this.lastSeenMs = tMs;
-    if (!this.anchored) {
-      // The hands only appeared after the clip started: anchor here, on the reference's curve.
-      this.begin([measure]);
-      this.riseOffset = this.refRise(tMs);
-      this.gap0 /= this.refAt(this.reference.gapRatio, tMs);
-      this.tilt0 -= this.refAt(this.reference.tiltChange, tMs) * this.unit;
-    }
+    // Without a start pose, the first sighting stands in for it.
+    if (!this.anchored) this.begin([measure]);
+    const rise = (this.anchorY - measure.midY) / this.unit;
+    this.peak = Math.max(this.peak, rise);
     this.samples.push({
       t: tMs,
-      rise: (this.anchorY - measure.midY) / this.unit + this.riseOffset,
+      rise,
       gapRatio: measure.gap / this.gap0,
       tiltChange: (measure.tilt - this.tilt0) / this.unit,
       lx: measure.left[0] / this.unit,
@@ -333,39 +362,87 @@ export class TakeScorer {
     return this.decide(tMs, raw);
   }
 
-  finish(): MotionResult {
+  /**
+   * After the clip, at take time tMs: has the learner finished? Yes once they have really moved and
+   * then hold still, lower their hands or take them away. A learner who has not started keeps the
+   * whole extra time.
+   */
+  finished(tMs: number): boolean {
+    const c = this.config;
+    const total = this.reference.totalRise;
+    const last = this.samples[this.samples.length - 1];
+    if (!last || this.peak < c.minTravel * total) return false;
+    if (tMs - last.t > c.lostMs) return true;
+    if (last.rise < this.peak - c.dropTravel * total) return true;
+
+    const hold = last.rise >= c.arriveProgress * total ? c.restMs : c.pauseMs;
+    let first = this.samples.length - 1;
+    while (first > 0 && last.t - this.samples[first - 1].t <= hold) first--;
+    // Tracked over most of that time, and never further from where the hands are now than "still".
+    if (last.t - this.samples[first].t < 0.8 * hold) return false;
+    for (let i = first; i < this.samples.length; i++) {
+      if (Math.abs(this.samples[i].rise - last.rise) > c.restTravel * total) return false;
+    }
+    return true;
+  }
+
+  /** The result of a take that ended at take time endMs. */
+  finish(endMs: number = this.reference.durationMs): MotionResult {
     const coverage = this.frames ? this.tracked / this.frames : 0;
     if (coverage < this.config.minCoverage || this.samples.length < 10) {
       return { score: null, reason: 'not-tracked', coverage };
     }
     const total = this.reference.totalRise;
+    const clipMs = this.reference.durationMs;
     const rises = this.samples.map((s) => s.rise).sort((a, b) => a - b);
     const travel = rises[Math.floor(rises.length * 0.95)];
     if (travel < this.config.minTravel * total) return { score: null, reason: 'no-movement', coverage };
-    // Lesson time after the last tracked frame counts as the hands standing still there.
-    const scored = [...this.samples];
-    const lastSample = scored[scored.length - 1];
-    for (let t = lastSample.t + this.reference.stepMs; t <= this.reference.durationMs; t += this.reference.stepMs) scored.push({ ...lastSample, t });
 
-    // Compare how the rise unfolds over time. A learner's hand size and reach differ a little from the
-    // reference's, so the best overall scale within +-25% is allowed, as is following up to 0.3 s late.
+    // What is compared: the rise at each moment. After the clip the learner is only finishing, so
+    // hands that come down again are not held against them, and time after the last tracked frame
+    // counts as the hands staying where they were.
+    const scored: Array<{ t: number; rise: number }> = [];
+    let top = -Infinity;
+    for (const s of this.samples) {
+      top = Math.max(top, s.rise);
+      scored.push({ t: s.t, rise: s.t > clipMs ? top : s.rise });
+    }
+    const last = scored[scored.length - 1];
+    for (let t = last.t + this.reference.stepMs; t <= endMs; t += this.reference.stepMs) scored.push({ t, rise: last.rise });
+
+    // Compare how the rise unfolds with how the artisan's does. Allowed without loss: a hand size
+    // and reach within +-25% of the reference's, a later start, a slower pace down to the slowest
+    // that still fits the take, and reacting up to 0.3 s late. Not allowed: a faster pace.
     let error = Infinity;
-    for (const scale of SCALES) {
-      let sum = 0;
-      for (const s of scored) {
-        const progress = s.rise / (scale * total);
-        let best = Infinity;
-        for (const lag of LAGS_MS) best = Math.min(best, Math.abs(progress - this.refRise(s.t - lag) / total));
-        sum += best;
+    let fit = { startMs: 0, stretch: 1 };
+    for (const stretch of STRETCHES) {
+      for (let startMs = 0; startMs + stretch * clipMs <= endMs + END_SLACK_MS; startMs += START_STEP_MS) {
+        for (const scale of SCALES) {
+          let sum = 0;
+          for (const s of scored) {
+            const progress = s.rise / (scale * total);
+            let best = Infinity;
+            for (const lag of LAGS_MS) {
+              best = Math.min(best, Math.abs(progress - this.refRise((s.t - startMs - lag) / stretch) / total));
+            }
+            sum += best;
+          }
+          // The last two terms only decide between fits that are equally good.
+          const e = sum / scored.length + 0.05 * Math.abs(Math.log(scale)) + 1e-6 * startMs + 1e-3 * (stretch - 1);
+          if (e < error) {
+            error = e;
+            fit = { startMs, stretch };
+          }
+        }
       }
-      error = Math.min(error, sum / scored.length + 0.05 * Math.abs(Math.log(scale)));
     }
     const { errorFree, errorZero, gapTol, gapWeight } = this.config;
     const progressScore = clamp01(1 - (error - errorFree) / (errorZero - errorFree));
 
     let gapError = 0;
     for (const s of this.samples) {
-      gapError += Math.max(0, Math.abs(s.gapRatio - this.refAt(this.reference.gapRatio, s.t)) - gapTol / 2);
+      const moment = (s.t - fit.startMs) / fit.stretch;
+      gapError += Math.max(0, Math.abs(s.gapRatio - this.refAt(this.reference.gapRatio, moment)) - gapTol / 2);
     }
     const gapScore = clamp01(1 - gapError / this.samples.length / gapTol);
 
@@ -383,25 +460,36 @@ export class TakeScorer {
     const total = this.reference.totalRise;
     const now = this.samples[this.samples.length - 1];
     const progress = now.rise / total;
+    // Not started: nothing to judge yet. Watching first is allowed; the take outlasts the clip.
+    if (progress < c.startProgress) return 'follow';
+
+    // Too fast: ahead of the artisan on the screen, or rising faster than the artisan does.
     const lead = progress - this.refRise(tMs) / total;
-    const behind = this.refRise(tMs - c.lagAllowMs) / total - progress;
-
     const past = this.sampleNear(tMs - SPEED_WINDOW_MS);
-    let ratio = 1;
-    const refSpeed = this.refRise(tMs) - this.refRise(tMs - SPEED_WINDOW_MS);
-    if (past && refSpeed > 0.1 * total * (SPEED_WINDOW_MS / this.reference.durationMs)) {
-      ratio = ((now.rise - past.rise) / (now.t - past.t)) / (refSpeed / SPEED_WINDOW_MS);
-    }
-    // Pace alone only counts when the learner is not already on the other side of the artisan.
-    if (lead > c.fastLead || (ratio > c.fastRatio && lead > -0.02)) return 'too-fast';
-    if (behind > c.slowLag || (ratio < c.slowRatio && lead < 0.02)) return 'too-slow';
+    const pace = past ? ((now.rise - past.rise) / (now.t - past.t)) / (total / this.reference.durationMs) : 1;
+    if (lead > c.fastLead || pace > c.fastRatio) return 'too-fast';
 
-    const gapError = now.gapRatio - this.refAt(this.reference.gapRatio, tMs);
+    // Being behind is allowed, so the hands are compared with the artisan's at the same height of
+    // the rise, not at the same moment of the clip.
+    const moment = this.momentOf(now.rise);
+    const gapError = now.gapRatio - this.refAt(this.reference.gapRatio, moment);
     if (gapError > c.gapTol) return 'hands-apart';
     if (gapError < -c.gapTol) return 'hands-close';
-    if (Math.abs(now.tiltChange - this.refAt(this.reference.tiltChange, tMs)) > c.tiltTol) return 'hands-uneven';
+    if (Math.abs(now.tiltChange - this.refAt(this.reference.tiltChange, moment)) > c.tiltTol) return 'hands-uneven';
     if (this.shake(tMs) > c.shakeTol) return 'shaky';
     return 'steady';
+  }
+
+  /** The moment of the clip at which the artisan's hands had risen this far. */
+  private momentOf(rise: number): number {
+    let low = 0;
+    let high = this.climb.length - 1;
+    while (low < high) {
+      const mid = (low + high) >> 1;
+      if (this.climb[mid] < rise) low = mid + 1;
+      else high = mid;
+    }
+    return low * this.reference.stepMs;
   }
 
   /** Root-mean-square distance of the hand centres from a straight path over the last half second. */

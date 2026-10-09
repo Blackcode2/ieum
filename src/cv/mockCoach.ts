@@ -79,8 +79,6 @@ export class MockCoach implements LessonCoach {
     this.emitHands(0);
   }
 
-  setMuted(_muted: boolean): void {}
-
   getState(): CoachState {
     return this.state;
   }

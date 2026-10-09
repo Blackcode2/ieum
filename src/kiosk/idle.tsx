@@ -17,7 +17,7 @@ export function pokeIdle(): void {
  * A kiosk must not stay on the last visitor's screen: after `seconds` without a touch the app
  * returns to the first screen. Returns the seconds left, for the notice.
  */
-export function useIdleReturn(seconds: number, enabled = true): number {
+function useIdleReturn(seconds: number, enabled: boolean): number {
   const [secondsLeft, setSecondsLeft] = useState(seconds);
 
   useEffect(() => {
@@ -41,8 +41,30 @@ export function useIdleReturn(seconds: number, enabled = true): number {
 }
 
 /**
- * The same rule with its own notice: shows nothing until the last twenty seconds, then says so
- * and offers to stay. Kept apart from the screen so that the screen does not re-render every second.
+ * For the first screen, once visitors have been: when nobody has touched the kiosk for `seconds`,
+ * the page loads itself afresh. A page that is never reloaded slowly piles up memory, and a reload
+ * on the first screen is seen by nobody.
+ */
+export function FreshStart({ seconds, enabled }: { seconds: number; enabled: boolean }): null {
+  useEffect(() => {
+    if (!enabled) return;
+    pokeIdle();
+    const options = { capture: true, passive: true } as const;
+    ACTIVITY_EVENTS.forEach((type) => window.addEventListener(type, pokeIdle, options));
+    const timer = window.setInterval(() => {
+      if (performance.now() - lastActivity >= seconds * 1000) window.location.reload();
+    }, 5000);
+    return () => {
+      ACTIVITY_EVENTS.forEach((type) => window.removeEventListener(type, pokeIdle, options));
+      window.clearInterval(timer);
+    };
+  }, [seconds, enabled]);
+  return null;
+}
+
+/**
+ * That rule with its notice: shows nothing until the last twenty seconds, then says so and offers
+ * to stay. A component of its own, so that the screen under it does not re-render every second.
  */
 export function IdleReturn({ seconds, enabled = true }: { seconds: number; enabled?: boolean }) {
   const secondsLeft = useIdleReturn(seconds, enabled);
@@ -52,7 +74,7 @@ export function IdleReturn({ seconds, enabled = true }: { seconds: number; enabl
       <p>{secondsLeft}초 뒤 처음 화면으로 돌아가요</p>
       {/* Any touch counts as staying; the button is there so that it can be seen and reached. */}
       <button type="button" className={styles.stay} onClick={pokeIdle}>
-        계속 보기
+        계속하기
       </button>
     </div>
   );

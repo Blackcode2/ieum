@@ -41,8 +41,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 24px;
-  color: rgba(255, 255, 255, 0.78);
+  font-size: 26px;
+  color: rgba(255, 255, 255, 0.8);
   white-space: nowrap;
 }
 
@@ -71,7 +71,8 @@
   height: 1027px;
   border-radius: 20px;
   overflow: hidden;
-  background: #d9d9d9;
+  /* Dark until the picture is there: a pale empty block on a dark screen looks broken. */
+  background: #24221f;
 }
 
 .cameraPanel {
@@ -120,7 +121,7 @@
   justify-content: center;
   border-radius: 11px;
   background: rgba(23, 23, 23, 0.7);
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 400;
   text-align: center;
   white-space: nowrap;
@@ -173,72 +174,24 @@
   background: rgba(23, 23, 23, 0.7);
 }
 
-/* ---- player controls ---- */
+/* ---- during a take ---- */
 
-.controls {
+/* The take's own "3, 2, 1", in the middle of the camera panel (33, 152, 1146 x 1027). */
+.bigCount {
   position: absolute;
-  left: 102px;
-  top: 1080px;
-  height: 65px;
-  display: flex;
-  align-items: center;
-  gap: 18px;
+  left: 426px;
+  top: 452px;
 }
 
-.playButton {
-  width: 65px;
-  height: 65px;
-  border-radius: 32.5px;
-  display: block;
-}
-
-.playButton img {
-  display: block;
-}
-
-.volumeButton {
-  width: 65px;
-  height: 65px;
-  padding: 19px 17px 19px 16px;
-  border-radius: 32.5px;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: flex-start;
-}
-
-.volumeButton img {
-  display: block;
-  transition: opacity 0.15s ease;
-}
-
-.volumeButton[aria-pressed='true'] img {
-  opacity: 0.35;
-}
-
-.playButton:focus-visible,
-.volumeButton:focus-visible {
-  outline: 3px solid #fff;
-  outline-offset: 3px;
-}
-
-.playButton:disabled {
-  cursor: default;
-  opacity: 0.5;
-}
-
-.time {
-  width: 223px;
-  height: 65px;
-  padding: 18px 36px 17px 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 52px;
-  background: rgba(0, 0, 0, 0.2);
-  font-size: 25px;
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+/* A way out of a take that went wrong from the start. Out of the way, at the foot of the camera panel. */
+.page .stop {
+  position: absolute;
+  left: 76px;
+  top: 1071px;
+  height: 72px;
+  padding: 0 32px;
+  border-radius: 36px;
+  font-size: 26px;
 }
 
 /* ---- the next step, over the foot of the artisan's panel ---- */
@@ -248,26 +201,23 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 440px;
+  height: 520px;
   background: linear-gradient(180deg, rgba(23, 23, 23, 0) 0%, rgba(23, 23, 23, 0.84) 55%, rgba(23, 23, 23, 0.94) 100%);
   pointer-events: none;
 }
 
+/* Stacked from the foot of the panel upwards, so one, two or three buttons all end at the same line. */
 .next {
   position: absolute;
   left: 1239px;
-  top: 925px;
+  bottom: 79px;
   width: 614px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
 
 .next button {
   width: 100%;
   padding: 0 24px;
-}
-
-.next .wide {
-  grid-column: 1 / -1;
 }
