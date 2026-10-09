@@ -328,10 +328,15 @@ export function LessonPage() {
                   다시 해 보기
                 </button>
               )}
-              {/* Always a way on, for someone who cannot or will not do the take or the photo. */}
-              <button type="button" className={state === 'error' ? ui.primary : ui.ghost} onClick={() => go(ROUTES.artisan)} data-testid="skip">
-                {state !== 'finished' ? '체험 없이 장인 소개 보기' : madePot ? '사진 없이 장인 소개 보기' : '장인 소개 보기'}
-              </button>
+              {/*
+                A way on for someone who cannot or will not do the take, or whose take left no pot.
+                Once there is a pot the visit goes on through the photo: that step is not skipped.
+              */}
+              {!(state === 'finished' && madePot) && (
+                <button type="button" className={state === 'error' ? ui.primary : ui.ghost} onClick={() => go(ROUTES.artisan)} data-testid="skip">
+                  {state === 'finished' ? '장인 소개 보기' : '체험 없이 장인 소개 보기'}
+                </button>
+              )}
             </div>
           )}
 
